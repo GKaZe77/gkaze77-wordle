@@ -188,3 +188,16 @@ body {
   background-color: #333;
   color: white;
 }
+
+.key-green {
+  background-color: #538d4e;
+  color: white;
+}
+.key-yellow {
+  background-color: #b59f3b;
+  color: white;
+}
+.key-gray {
+  background-color: #3a3a3c;
+  color: white;
+}
