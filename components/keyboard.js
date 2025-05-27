@@ -1,4 +1,4 @@
-import { getGameState } from "../utils/state.js";
+import { getState } from "../utils/state.js";
 
 const keyboardLayout = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -11,8 +11,8 @@ const keyboardContainer = document.getElementById("keyboard");
 export function renderKeyboard() {
   keyboardContainer.innerHTML = "";
 
-  const state = getGameState();
-  const keyStatuses = computeKeyStatuses(state);
+  const { guesses = [], feedback = [] } = getState();
+  const keyStatus = computeKeyStatuses(guesses, feedback);
 
   keyboardLayout.forEach((row) => {
     const rowDiv = document.createElement("div");
@@ -23,8 +23,9 @@ export function renderKeyboard() {
       button.textContent = key;
       button.classList.add("keyboard-key");
 
-      if (keyStatuses[key]) {
-        button.classList.add(`key-${keyStatuses[key]}`); // key-green, key-yellow, key-gray
+      const status = keyStatus[key];
+      if (status) {
+        button.classList.add(`key-${status}`); // key-green, key-yellow, key-gray
       }
 
       button.setAttribute("data-key", key);
@@ -35,21 +36,18 @@ export function renderKeyboard() {
   });
 }
 
-// Prioritizes: green > yellow > gray
-function computeKeyStatuses(state) {
+function computeKeyStatuses(guesses, feedback) {
   const statuses = {};
 
-  state.guesses.forEach((guess, i) => {
-    const feedback = state.feedback[i];
-
-    for (let j = 0; j < guess.length; j++) {
-      const letter = guess[j];
-      const fb = feedback[j]; // 'green', 'yellow', 'gray'
+  guesses.forEach((word, guessIndex) => {
+    word.split("").forEach((letter, i) => {
+      const fb = feedback[guessIndex]?.[i];
+      if (!fb) return;
 
       if (!statuses[letter] || priority(fb) > priority(statuses[letter])) {
         statuses[letter] = fb;
       }
-    }
+    });
   });
 
   return statuses;
