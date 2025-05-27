@@ -7,8 +7,7 @@ const keyboardLayout = [
 ];
 
 const keyboardContainer = document.getElementById("keyboard");
-
-const keyClassMap = {}; // tracks best known status per letter
+const keyClassMap = {}; // Tracks best known state per letter
 
 export function renderKeyboard(onKeyPress = null) {
   keyboardContainer.innerHTML = "";
@@ -22,14 +21,11 @@ export function renderKeyboard(onKeyPress = null) {
       button.textContent = key;
       button.classList.add("keyboard-key");
 
-      if (keyClassMap[key]) {
-        button.classList.add(`key-${keyClassMap[key]}`);
-      }
+      const status = keyClassMap[key];
+      if (status) button.classList.add(`key-${status}`);
 
       button.setAttribute("data-key", key);
-      if (onKeyPress) {
-        button.addEventListener("click", () => onKeyPress(key));
-      }
+      if (onKeyPress) button.addEventListener("click", () => onKeyPress(key));
 
       rowDiv.appendChild(button);
     });
@@ -41,31 +37,24 @@ export function renderKeyboard(onKeyPress = null) {
 export function updateKeyColors(feedback, guess) {
   for (let i = 0; i < guess.length; i++) {
     const letter = guess[i];
-    const fb = feedback[i];
-    const status = feedbackToStatus(fb);
+    const status = emojiToStatus(feedback[i]);
 
     if (!keyClassMap[letter] || statusPriority(status) > statusPriority(keyClassMap[letter])) {
       keyClassMap[letter] = status;
     }
   }
 
-  renderKeyboard(); // re-render after update
+  renderKeyboard(); // Refresh visuals
 }
 
-function feedbackToStatus(symbol) {
-  switch (symbol) {
-    case "🟩": return "green";
-    case "🟨": return "yellow";
-    case "⬜️": return "gray";
-    default: return null;
-  }
+function emojiToStatus(symbol) {
+  return symbol === "🟩" ? "green" :
+         symbol === "🟨" ? "yellow" :
+         symbol === "⬜️" ? "gray" : null;
 }
 
 function statusPriority(status) {
-  switch (status) {
-    case "green": return 3;
-    case "yellow": return 2;
-    case "gray": return 1;
-    default: return 0;
-  }
+  return status === "green" ? 3 :
+         status === "yellow" ? 2 :
+         status === "gray" ? 1 : 0;
 }

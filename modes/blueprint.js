@@ -2,7 +2,9 @@ import { getSeedMetadata } from "../utils/seed.js";
 import { evaluateGuess } from "../components/feedback.js";
 import { renderBoard } from "../components/board.js";
 import { renderEndScreen } from "../components/endscreen.js";
+import { updateKeyColors } from "../components/keyboard.js";
 import { setState } from "../utils/state.js";
+
 
 const MAX_GUESSES = 6;
 const inputBox = document.getElementById("solution-input");
@@ -48,17 +50,21 @@ function setupInput() {
     if (feedbacks[rowIndex]) return;
 
     if (e.key === "Enter") {
-      if (row.length !== 5 || !wordlist.includes(row.toUpperCase())) {
-        resultText.textContent = "❗ Invalid word.";
-        return;
-      }
-      row = row.toUpperCase();
-      const fb = evaluateGuess(row, targetWord);
-      guesses[rowIndex] = row;
-      feedbacks[rowIndex] = fb;
-      renderBoard(MAX_GUESSES, guesses, feedbacks, rowIndex);
-      renderEndScreen(row === targetWord, targetWord, () => location.reload());
-    } else if (e.key === "Backspace") {
+  if (row.length !== 5 || !wordlist.includes(row.toUpperCase())) {
+    resultText.textContent = "❗ Invalid word.";
+    return;
+  }
+
+  row = row.toUpperCase();
+  const fb = evaluateGuess(row, targetWord);
+  guesses[rowIndex] = row;
+  feedbacks[rowIndex] = fb;
+
+  updateKeyColors(fb, row); // ✅ this enables keyboard coloring
+  renderBoard(MAX_GUESSES, guesses, feedbacks, rowIndex);
+  renderEndScreen(row === targetWord, targetWord, () => location.reload());
+}
+ else if (e.key === "Backspace") {
       guesses[rowIndex] = row.slice(0, -1);
       renderBoard(MAX_GUESSES, guesses, feedbacks);
     } else if (/^[a-zA-Z]$/.test(e.key) && row.length < 5) {
