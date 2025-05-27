@@ -72,7 +72,7 @@ body {
   }
 }
 
-/* === Feedback States (tiles + keys) === */
+/* === Feedback States === */
 .feedback-correct,
 .key-correct {
   background-color: green;
@@ -99,28 +99,49 @@ body {
   color: #aaa;
 }
 
-/* === Keyboard === */
+/* === Keyboard Layout === */
 .keyboard-row {
-  margin: 0.5rem 0;
+  margin: 0.4rem 0;
+  display: flex;
+  justify-content: center;
 }
 
-.key {
-  margin: 0.2rem;
-  padding: 0.75rem 1rem;
-  background-color: #333;
-  color: white;
-  border: none;
+.keyboard-key {
+  margin: 0.15rem;
+  padding: 0.75rem;
   font-size: 1rem;
-  cursor: pointer;
+  font-weight: bold;
+  border: none;
   border-radius: 4px;
-  transition: background 0.3s;
+  background-color: #818384;
+  color: white;
+  min-width: 2.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.key:hover {
-  background-color: #555;
+.keyboard-key[data-key='ENTER'],
+.keyboard-key[data-key='←'] {
+  min-width: 3.5rem;
 }
 
-/* === Tooltip on Locked-in Words === */
+/* === Final Key Color States === */
+.key-green {
+  background-color: #538d4e !important;
+  color: white !important;
+}
+
+.key-yellow {
+  background-color: #b59f3b !important;
+  color: white !important;
+}
+
+.key-gray {
+  background-color: #3a3a3c !important;
+  color: white !important;
+}
+
+/* === Tooltip === */
 .word-tooltip {
   position: absolute;
   background: #222;
@@ -186,18 +207,5 @@ body {
 
 #reset-button:hover {
   background-color: #333;
-  color: white;
-}
-
-.key-green {
-  background-color: #538d4e;
-  color: white;
-}
-.key-yellow {
-  background-color: #b59f3b;
-  color: white;
-}
-.key-gray {
-  background-color: #3a3a3c;
   color: white;
 }
