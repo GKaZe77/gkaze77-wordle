@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blueprint Mode</title>
+  <link rel="stylesheet" href="../css/game.css" />
+  <link rel="stylesheet" href="../css/blueprint.css" />
+</head>
+<body class="blueprint">
+  <main>
+    <header>
+      <h1 id="game-title" title="Shared Wordle if seeded">📐 Blueprint Mode</h1>
+    </header>
+
+    <section id="game-container"></section>
+    <section id="endscreen"></section>
+
+    <div id="input-area">
+      <input id="solution-input" type="text" maxlength="5" placeholder="Final guess..." autofocus />
+      <p id="result-text"></p>
+    </div>
+  </main>
+
+  <footer>
+    <p id="seed-info"></p>
+    <button id="reset-button">🔁 Reset Game</button>
+  </footer>
+
+  <script type="module" src="blueprint.js"></script>
+</body>
+</html>

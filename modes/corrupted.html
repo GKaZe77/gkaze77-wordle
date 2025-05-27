@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wordle — Corrupted Mode</title>
+  <link rel="stylesheet" href="../css/game.css" />
+  <link rel="stylesheet" href="../css/corrupted.css" />
+</head>
+<body class="corrupted">
+  <main>
+    <header>
+      <h1 id="game-title" title="">Loading...</h1>
+    </header>
+
+    <section id="game-container"></section>
+    <section id="keyboard"></section>
+    <section id="endscreen"></section>
+  </main>
+
+  <footer>
+    <p style="font-size: 0.8rem; color: #666;">Wordle clone by GKaZe77 ✨</p>
+    <p id="timer" style="font-size: 0.9rem; color: #aaa; margin-top: 0.25rem;">Word Resets In: --:--</p>
+    <button id="reset-button" style="margin-top: 1rem;">Reset Game</button>
+  </footer>
+
+  <script type="module" src="corrupted.js"></script>
+</body>
+</html>

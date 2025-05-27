@@ -1,0 +1,26 @@
+/* corrupted.css - overrides for Corrupted Mode */
+
+body.corrupted {
+  background-color: #0d000d;
+  background-image: repeating-radial-gradient(#111 0px, #000 1px, #111 2px);
+  animation: staticFlicker 1.5s infinite alternate;
+}
+
+@keyframes staticFlicker {
+  0%   { background-position: 0 0; filter: brightness(1); }
+  25%  { background-position: 3px 2px; filter: brightness(1.1); }
+  50%  { background-position: -2px -3px; filter: brightness(0.9); }
+  75%  { background-position: 1px -1px; filter: brightness(1); }
+  100% { background-position: 0 2px; filter: brightness(0.95); }
+}
+
+.tile {
+  animation: corruptBlink 2s infinite alternate ease-in-out;
+}
+
+@keyframes corruptBlink {
+  0%   { color: white; background-color: #222; }
+  45%  { color: black; background-color: #ddd; }
+  55%  { color: black; background-color: #ddd; }
+  100% { color: white; background-color: #222; }
+}

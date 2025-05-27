@@ -1,0 +1,96 @@
+/* === Blueprint Mode Theme === */
+body.blueprint {
+  background-color: #0b0e14;
+  color: #dce1e7;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* === Game Board Grid === */
+#game-container {
+  display: grid;
+  grid-template-rows: repeat(6, auto);
+  gap: 0.5rem;
+  justify-items: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.guess-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+/* === Tiles === */
+.tile {
+  width: 3rem;
+  height: 3rem;
+  border: 2px solid #3b4252;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.5rem;
+  background-color: #1c1f26;
+  color: #dce1e7;
+  text-transform: uppercase;
+}
+
+/* === Feedback States === */
+.feedback-correct {
+  background-color: #4caf50;
+  border-color: #4caf50;
+  color: white;
+}
+
+.feedback-present {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: black;
+}
+
+.feedback-absent {
+  background-color: #616161;
+  border-color: #616161;
+  color: white;
+}
+
+/* === Input Area === */
+#input-area {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+#solution-input {
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  width: 240px;
+  border: 2px solid #3b4252;
+  background-color: #12151b;
+  color: #dce1e7;
+  text-align: center;
+}
+
+#solution-input:disabled {
+  background-color: #333;
+  color: #888;
+}
+
+#result-text {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  color: #ff6f61;
+}
+
+/* === Footer & Seed === */
+footer {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+#seed-info {
+  margin-top: 0.5rem;
+}

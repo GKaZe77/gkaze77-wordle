@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wordle Modes</title>
+  <link rel="stylesheet" href="css/game.css" />
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    ul.mode-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .mode-item {
+      background-color: #1a1a1a;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 5px solid;
+      transition: background 0.3s;
+    }
+
+    .mode-item:hover {
+      background-color: #222;
+    }
+
+    .mode-link {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .mode-desc {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .mode-regular { border-color: #6aaa64; }
+    .mode-corrupted { border-color: #b46eb1; }
+    .mode-blueprint { border-color: #5ca3d0; }
+
+    #custom-share {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #1a1a1a;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 600px;
+      border-left: 5px solid #fbc02d;
+    }
+
+    #custom-share button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-weight: bold;
+      background: #333;
+      color: #eee;
+      border: 1px solid #555;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #custom-share button:hover {
+      background-color: #444;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Choose Your Wordle Mode</h1>
+
+  <ul class="mode-list">
+    <li class="mode-item mode-regular">
+      <a href="modes/regular.html" class="mode-link">🟩 Regular Mode</a>
+      <div class="mode-desc">Classic 5-letter Wordle with hourly seeded words. All players get the same word each hour.</div>
+    </li>
+    <li class="mode-item mode-corrupted">
+      <a href="modes/corrupted.html" class="mode-link">🧪 Corrupted Mode</a>
+      <div class="mode-desc">Same rules as Regular, but feedback may lie. Adds paranoia and bluff logic with a glitchy theme.</div>
+    </li>
+    <li class="mode-item mode-blueprint">
+      <a href="modes/blueprint.html" class="mode-link">📐 Blueprint Mode</a>
+      <div class="mode-desc">You're shown a full board of guesses and feedback. Deduce the hidden word from the clues left behind.</div>
+    </li>
+  </ul>
+
+  <div id="custom-share">
+    <strong>🔗 Create Custom Word Game</strong>
+    <p>Choose a 5-letter word from the dictionary to generate a shareable link for any mode.</p>
+    <button onclick="createCustomLink()">Create Link</button>
+  </div>
+
+  <footer>
+    <p>Seeded Wordle Engine by GKaZe77</p>
+  </footer>
+  <script>
+  function createCustomLink() {
+    fetch('./data/wordlist.json')
+      .then((res) => res.json())
+      .then((wordlist) => {
+        const input = prompt("Enter a 5-letter word from the word list:");
+        const word = input?.trim().toUpperCase();
+
+        if (!word || word.length !== 5 || !wordlist.includes(word)) {
+          alert("Invalid or unknown word.");
+          return;
+        }
+
+        // Simple hash implementation (same as used in seed.js)
+        let hash = 0;
+        for (let i = 0; i < word.length; i++) {
+          hash = (hash << 5) - hash + word.charCodeAt(i);
+          hash |= 0;
+        }
+
+        const url = `${location.origin}/modes/regular.html?seed=${Math.abs(hash)}`;
+        navigator.clipboard.writeText(url).then(() => {
+          alert("✅ Shareable link copied to clipboard:\n" + url);
+        }).catch(() => {
+          alert("Your link:\n" + url);
+        });
+      })
+      .catch(() => {
+        alert("❌ Failed to load word list.");
+      });
+  }
+</script>
+
+</body>
+</html>

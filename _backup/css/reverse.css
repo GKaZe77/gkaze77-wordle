@@ -1,0 +1,12 @@
+/* reverse.css - overrides for Reverse Mode */
+
+body.reverse {
+  background-color: #101d2c;
+}
+
+.tile {
+  background-color: #0a2a42;
+  border: 2px dashed #5ca3d0;
+  color: #87cefa;
+  font-family: 'Courier New', monospace;
+}

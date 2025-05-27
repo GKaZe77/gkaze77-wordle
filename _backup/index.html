@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wordle Modes</title>
+  <link rel="stylesheet" href="css/game.css" />
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    ul.mode-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .mode-item {
+      background-color: #1a1a1a;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 5px solid;
+      transition: background 0.3s;
+    }
+
+    .mode-item:hover {
+      background-color: #222;
+    }
+
+    .mode-link {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .mode-desc {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .mode-regular { border-color: #6aaa64; }
+    .mode-corrupted { border-color: #b46eb1; }
+    .mode-reverse { border-color: #5ca3d0; }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Choose Your Wordle Mode</h1>
+
+  <ul class="mode-list">
+    <li class="mode-item mode-regular">
+      <a href="modes/regular.html" class="mode-link">🟩 Regular Mode</a>
+      <div class="mode-desc">Classic 5-letter Wordle with hourly seeded words. All players get the same word each hour.</div>
+    </li>
+    <li class="mode-item mode-corrupted">
+      <a href="modes/corrupted.html" class="mode-link">🧪 Corrupted Mode</a>
+      <div class="mode-desc">Same rules as Regular, but feedback may lie. Adds paranoia and bluff logic with a glitchy theme.</div>
+    </li>
+    <li class="mode-item mode-reverse">
+      <a href="modes/reverse.html" class="mode-link">🔁 Reverse Mode</a>
+      <div class="mode-desc">You're given a final guess and its feedback. Your job: figure out what the hidden word was.</div>
+    </li>
+  </ul>
+
+  <footer>
+    <p>Seeded Wordle Engine by GKaZe77</p>
+  </footer>
+</body>
+</html>
