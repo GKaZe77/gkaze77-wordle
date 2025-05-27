@@ -7,9 +7,14 @@ const keyboardLayout = [
 ];
 
 const keyboardContainer = document.getElementById("keyboard");
-const keyClassMap = {}; // Tracks best known state per letter
+const keyClassMap = {}; // Tracks best known status per letter
+let lastKeyHandler = null; // Stores the last bound onKeyPress callback
 
 export function renderKeyboard(onKeyPress = null) {
+  if (onKeyPress) {
+    lastKeyHandler = onKeyPress;
+  }
+
   keyboardContainer.innerHTML = "";
 
   keyboardLayout.forEach((row) => {
@@ -22,10 +27,14 @@ export function renderKeyboard(onKeyPress = null) {
       button.classList.add("keyboard-key");
 
       const status = keyClassMap[key];
-      if (status) button.classList.add(`key-${status}`);
+      if (status) {
+        button.classList.add(`key-${status}`);
+      }
 
       button.setAttribute("data-key", key);
-      if (onKeyPress) button.addEventListener("click", () => onKeyPress(key));
+      if (lastKeyHandler) {
+        button.addEventListener("click", () => lastKeyHandler(key));
+      }
 
       rowDiv.appendChild(button);
     });
@@ -37,24 +46,31 @@ export function renderKeyboard(onKeyPress = null) {
 export function updateKeyColors(feedback, guess) {
   for (let i = 0; i < guess.length; i++) {
     const letter = guess[i];
-    const status = emojiToStatus(feedback[i]);
+    const fb = feedback[i];
+    const status = emojiToStatus(fb);
 
     if (!keyClassMap[letter] || statusPriority(status) > statusPriority(keyClassMap[letter])) {
       keyClassMap[letter] = status;
     }
   }
 
-  renderKeyboard(); // Refresh visuals
+  renderKeyboard(); // Re-render with preserved event binding
 }
 
 function emojiToStatus(symbol) {
-  return symbol === "🟩" ? "green" :
-         symbol === "🟨" ? "yellow" :
-         symbol === "⬜️" ? "gray" : null;
+  switch (symbol) {
+    case "🟩": return "green";
+    case "🟨": return "yellow";
+    case "⬜️": return "gray";
+    default: return null;
+  }
 }
 
 function statusPriority(status) {
-  return status === "green" ? 3 :
-         status === "yellow" ? 2 :
-         status === "gray" ? 1 : 0;
+  switch (status) {
+    case "green": return 3;
+    case "yellow": return 2;
+    case "gray": return 1;
+    default: return 0;
+  }
 }
