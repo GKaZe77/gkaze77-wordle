@@ -1,72 +1,65 @@
-const KEYS = [
-  'QWERTYUIOP'.split(''),
-  'ASDFGHJKL'.split(''),
-  ['ENTER', ...'ZXCVBNM'.split(''), '⌫']
+import { getGameState } from "../utils/state.js";
+
+const keyboardLayout = [
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "←"]
 ];
 
-let onKey = null;
-const keyStates = {}; // e.g. A → 'correct' | 'present' | 'absent'
+const keyboardContainer = document.getElementById("keyboard");
 
-/**
- * Renders the keyboard and binds keys to the current onKeyPress handler
- * @param {Function} onKeyPress 
- */
-export function renderKeyboard(onKeyPress) {
-  onKey = onKeyPress;
-  const container = document.getElementById('keyboard');
-  container.innerHTML = '';
+export function renderKeyboard() {
+  keyboardContainer.innerHTML = "";
 
-  KEYS.forEach(row => {
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'keyboard-row';
+  const state = getGameState();
+  const keyStatuses = computeKeyStatuses(state);
 
-    row.forEach(key => {
-      const btn = document.createElement('button');
-      btn.textContent = key;
-      btn.className = `key ${getKeyClass(key)}`;
-      btn.setAttribute('data-key', key);
-      btn.onclick = () => onKey(key);
-      rowDiv.appendChild(btn);
+  keyboardLayout.forEach((row) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.classList.add("keyboard-row");
+
+    row.forEach((key) => {
+      const button = document.createElement("button");
+      button.textContent = key;
+      button.classList.add("keyboard-key");
+
+      if (keyStatuses[key]) {
+        button.classList.add(`key-${keyStatuses[key]}`); // key-green, key-yellow, key-gray
+      }
+
+      button.setAttribute("data-key", key);
+      rowDiv.appendChild(button);
     });
 
-    container.appendChild(rowDiv);
+    keyboardContainer.appendChild(rowDiv);
   });
 }
 
-/**
- * Updates key color states after each guess
- * @param {string[]} feedback - Emoji tiles per letter
- * @param {string} guess - 5-letter guess word
- */
-export function updateKeyColors(feedback, guess) {
-  for (let i = 0; i < 5; i++) {
-    const letter = guess[i].toUpperCase();
-    const symbol = feedback[i];
-    const current = keyStates[letter];
+// Prioritizes: green > yellow > gray
+function computeKeyStatuses(state) {
+  const statuses = {};
 
-    if (!letter.match(/[A-Z]/)) continue;
+  state.guesses.forEach((guess, i) => {
+    const feedback = state.feedback[i];
 
-    if (symbol === '🟩') {
-      keyStates[letter] = 'correct';
-    } else if (symbol === '🟨' && current !== 'correct') {
-      keyStates[letter] = 'present';
-    } else if (symbol === '⬜️' && !current) {
-      keyStates[letter] = 'absent';
+    for (let j = 0; j < guess.length; j++) {
+      const letter = guess[j];
+      const fb = feedback[j]; // 'green', 'yellow', 'gray'
+
+      if (!statuses[letter] || priority(fb) > priority(statuses[letter])) {
+        statuses[letter] = fb;
+      }
     }
-  }
+  });
 
-  renderKeyboard(onKey); // force re-render with updated states
+  return statuses;
 }
 
-/**
- * Returns appropriate class based on the letter state
- * @param {string} key 
- * @returns {string}
- */
-function getKeyClass(key) {
-  const state = keyStates[key];
-  if (state === 'correct') return 'key-correct';
-  if (state === 'present') return 'key-present';
-  if (state === 'absent') return 'key-absent';
-  return 'key-unused';
+function priority(status) {
+  switch (status) {
+    case "green": return 3;
+    case "yellow": return 2;
+    case "gray": return 1;
+    default: return 0;
+  }
 }
