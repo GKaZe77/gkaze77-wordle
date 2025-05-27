@@ -33,7 +33,8 @@ export function renderKeyboard(onKeyPress = null) {
 
       button.setAttribute("data-key", key);
       if (lastKeyHandler) {
-        button.addEventListener("click", () => lastKeyHandler(key));
+       let mappedKey = key === "←" ? "⌫" : key;
+        button.addEventListener("click", () => lastKeyHandler(mappedKey));
       }
 
       rowDiv.appendChild(button);
