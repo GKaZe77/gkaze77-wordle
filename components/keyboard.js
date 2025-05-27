@@ -8,11 +8,10 @@ const keyboardLayout = [
 
 const keyboardContainer = document.getElementById("keyboard");
 
-export function renderKeyboard() {
-  keyboardContainer.innerHTML = "";
+const keyClassMap = {}; // tracks best known status per letter
 
-  const { guesses = [], feedback = [] } = getState();
-  const keyStatus = computeKeyStatuses(guesses, feedback);
+export function renderKeyboard(onKeyPress = null) {
+  keyboardContainer.innerHTML = "";
 
   keyboardLayout.forEach((row) => {
     const rowDiv = document.createElement("div");
@@ -23,12 +22,15 @@ export function renderKeyboard() {
       button.textContent = key;
       button.classList.add("keyboard-key");
 
-      const status = keyStatus[key];
-      if (status) {
-        button.classList.add(`key-${status}`); // key-green, key-yellow, key-gray
+      if (keyClassMap[key]) {
+        button.classList.add(`key-${keyClassMap[key]}`);
       }
 
       button.setAttribute("data-key", key);
+      if (onKeyPress) {
+        button.addEventListener("click", () => onKeyPress(key));
+      }
+
       rowDiv.appendChild(button);
     });
 
@@ -36,24 +38,30 @@ export function renderKeyboard() {
   });
 }
 
-function computeKeyStatuses(guesses, feedback) {
-  const statuses = {};
+export function updateKeyColors(feedback, guess) {
+  for (let i = 0; i < guess.length; i++) {
+    const letter = guess[i];
+    const fb = feedback[i];
+    const status = feedbackToStatus(fb);
 
-  guesses.forEach((word, guessIndex) => {
-    word.split("").forEach((letter, i) => {
-      const fb = feedback[guessIndex]?.[i];
-      if (!fb) return;
+    if (!keyClassMap[letter] || statusPriority(status) > statusPriority(keyClassMap[letter])) {
+      keyClassMap[letter] = status;
+    }
+  }
 
-      if (!statuses[letter] || priority(fb) > priority(statuses[letter])) {
-        statuses[letter] = fb;
-      }
-    });
-  });
-
-  return statuses;
+  renderKeyboard(); // re-render after update
 }
 
-function priority(status) {
+function feedbackToStatus(symbol) {
+  switch (symbol) {
+    case "🟩": return "green";
+    case "🟨": return "yellow";
+    case "⬜️": return "gray";
+    default: return null;
+  }
+}
+
+function statusPriority(status) {
   switch (status) {
     case "green": return 3;
     case "yellow": return 2;
