@@ -15,7 +15,7 @@ An advanced multi-mode Wordle clone with seed-based word-of-the-hour logic. Each
   Adds paranoia and bluff-logic. Themed visuals and randomized deception logic.  
   Uses its own hourly seed.
 
-- 🔁 **Reverse Mode**  
+- 🔁 **Blueprint Mode**  
   You see a final guess and the feedback result. Your job: figure out the hidden word that caused it.  
   A logic puzzle mode. Requires analytical deduction. Also seeded uniquely every hour.
 
