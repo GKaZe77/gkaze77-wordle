@@ -65,7 +65,7 @@ getSeedMetadata(wordList, 'corrupted')
 modes/
   regular.html / regular.js
   corrupted.html / corrupted.js
-  reverse.html / reverse.js
+  blueprint.html / blueprint.js
 
 components/
   board.js, keyboard.js, feedback.js, endscreen.js
@@ -77,7 +77,7 @@ data/
   wordlist.json, word_definitions.js
 
 css/
-  game.css, corrupted.css, reverse.css
+  game.css, corrupted.css, blueprint.css
 ```
 
 ---
