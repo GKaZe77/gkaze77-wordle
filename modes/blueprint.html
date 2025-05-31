@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Blueprint Mode</title>
   <link rel="stylesheet" href="../css/game.css" />
   <link rel="stylesheet" href="../css/blueprint.css" />
+  <link rel="icon" href="../assets/favicon.ico" />
+  <meta name="theme-color" content="#111111" />
 </head>
 <body class="blueprint">
   <main>
@@ -14,16 +16,13 @@
     </header>
 
     <section id="game-container"></section>
+    <section id="keyboard"></section>
     <section id="endscreen"></section>
-
-    <div id="input-area">
-      <input id="solution-input" type="text" maxlength="5" placeholder="Final guess..." autofocus />
-      <p id="result-text"></p>
-    </div>
   </main>
 
   <footer>
     <p id="seed-info"></p>
+    <p id="timer" style="font-size: 0.9rem; color: #aaa;"></p>
     <button id="reset-button">🔁 Reset Game</button>
   </footer>
 
