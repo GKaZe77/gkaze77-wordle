@@ -2,57 +2,75 @@ import { renderBoard } from "../components/board.js";
 import { renderKeyboard, updateKeyColors } from "../components/keyboard.js";
 import { renderEndScreen } from "../components/endscreen.js";
 import { evaluateGuess } from "../components/feedback.js";
-import { getSeedMetadata } from "../utils/seed.js";
 import { setState } from "../utils/state.js";
 
 const MAX_GUESSES = 6;
+const STORAGE_KEY_PREFIX = 'wordle-blueprint';
 let wordlist = [];
 let guesses = [];
 let feedbacks = [];
 let targetWord = "";
 let seedKey = "";
-let aiTier = 1;
-let mode = "seed";
+let aiTier = Math.floor(Math.random() * 4) + 1;
+let seedUsed = false;
 
-// Preload
-fetch("../data/wordlist.json")
-  .then(res => res.json())
-  .then(words => {
-    wordlist = words;
-    const seed = getSeedFromURL();
-    const metadata = getSeedMetadata(wordlist, "blueprint");
-    targetWord = metadata.word;
-    seedKey = metadata.key;
-    aiTier = Math.floor(Math.random() * 4) + 1;
+init();
 
-    const info = document.getElementById("seed-info");
-    info.textContent = seed
-      ? `🧩 Shared Wordle (Seed: ${seed})`
-      : `🎲 Random Wordle (AI Tier ${aiTier})`;
+async function init() {
+  wordlist = await fetch("../data/wordlist.json").then(res => res.json());
 
-    prefillWithAI();
-    guesses.push(""); // Last guess by player
-    feedbacks.push(null);
+  const metadata = await getSeedOrFallback(wordlist);
+  targetWord = metadata.word;
+  seedKey = metadata.key;
 
-    renderBoard(MAX_GUESSES, guesses, feedbacks);
-    renderKeyboard(onKeyPress);
-    setupTimer();
-    setState({ guesses, feedbacks });
+  const info = document.getElementById("seed-info");
+  info.textContent = seedUsed
+    ? `🧩 Shared Wordle (Seed: ${seedKey})`
+    : `🎲 Random Wordle (AI Tier ${aiTier})`;
 
-    document.getElementById("reset-button")?.addEventListener("click", () => {
-      localStorage.removeItem(`wordle-blueprint-${seedKey}`);
-      location.reload();
-    });
+  prefillWithAI();
+  guesses.push(""); // Player's input row
+  feedbacks.push(null);
 
-    window.addEventListener("keydown", (e) => {
-      let key = e.key.toUpperCase();
-      if (key === "BACKSPACE") key = "⌫";
-      if (key === "ENTER") key = "ENTER";
-      if ((/^[A-Z]$/.test(key) && key.length === 1) || key === "ENTER" || key === "⌫") {
-        onKeyPress(key);
-      }
-    });
+  renderBoard(MAX_GUESSES, guesses, feedbacks);
+  renderKeyboard(onKeyPress);
+  setupTimer();
+  setState({ guesses, feedbacks });
+
+  document.getElementById("reset-button")?.addEventListener("click", () => {
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
+    location.reload();
   });
+
+  window.addEventListener("keydown", (e) => {
+    let key = e.key.toUpperCase();
+    if (key === "BACKSPACE") key = "⌫";
+    if (key === "ENTER") key = "ENTER";
+    if ((/^[A-Z]$/.test(key) && key.length === 1) || key === "ENTER" || key === "⌫") {
+      onKeyPress(key);
+    }
+  });
+}
+
+async function getSeedOrFallback(wordlist) {
+  try {
+    const response = await fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint");
+    const data = await response.json();
+    if (data?.word && data?.seed) {
+      const played = localStorage.getItem(`used-${STORAGE_KEY_PREFIX}-${data.seed}`);
+      if (!played) {
+        seedUsed = true;
+        return { word: data.word.toUpperCase(), key: data.seed };
+      }
+    }
+  } catch (e) {
+    console.warn("Seed fetch failed. Using fallback word.");
+  }
+
+  // fallback
+  const index = Math.floor(Math.random() * wordlist.length);
+  return { word: wordlist[index].toUpperCase(), key: `random-${Date.now()}` };
+}
 
 function onKeyPress(letter) {
   const rowIndex = 5;
@@ -71,6 +89,10 @@ function onKeyPress(letter) {
     updateKeyColors(fb, row);
     renderBoard(MAX_GUESSES, guesses, feedbacks, rowIndex);
     renderEndScreen(row === targetWord, targetWord, () => location.reload());
+
+    if (seedUsed) {
+      localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
+    }
   } else if (letter === "⌫") {
     guesses[rowIndex] = row.slice(0, -1);
     renderBoard(MAX_GUESSES, guesses, feedbacks);
@@ -126,11 +148,6 @@ function bluff(candidates, correct) {
 
 function sharedLetters(a, b) {
   return [...a].filter(l => b.includes(l)).length;
-}
-
-function getSeedFromURL() {
-  const p = new URLSearchParams(location.search);
-  return p.get("seed");
 }
 
 function setupTimer() {
