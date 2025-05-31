@@ -17,25 +17,35 @@ let seedUsed = false;
 init();
 
 async function init() {
-  wordlist = await fetch("../data/wordlist.json").then(res => res.json());
+  try {
+    wordlist = await fetch("../data/wordlist.json").then(res => res.json());
+  } catch (e) {
+    console.warn("❌ Failed to load wordlist. Using fallback word.");
+    wordlist = ["WORDL"];
+  }
 
   const metadata = await getSeedOrFallback(wordlist);
-  targetWord = metadata.word;
-  seedKey = metadata.key;
+  targetWord = metadata.word || "WORDL";
+  seedKey = metadata.key || `fallback-${Date.now()}`;
 
   const info = document.getElementById("seed-info");
   info.textContent = seedUsed
     ? `🧩 Shared Wordle (Seed: ${seedKey})`
     : `🎲 Random Wordle (AI Tier ${aiTier})`;
 
-  prefillWithAI();
-  guesses.push(""); // Player's input row
-  feedbacks.push(null);
+  try {
+    prefillWithAI();
+    guesses.push(""); // Final player input row
+    feedbacks.push(null);
 
-  renderBoard(MAX_GUESSES, guesses, feedbacks);
-  renderKeyboard(onKeyPress);
-  setupTimer();
-  setState({ guesses, feedbacks });
+    renderBoard(MAX_GUESSES, guesses, feedbacks);
+    renderKeyboard(onKeyPress);
+    setupTimer();
+    setState({ guesses, feedbacks });
+  } catch (e) {
+    console.error("❌ Game render failed:", e);
+    document.getElementById("game-container").innerText = "Error loading Blueprint Mode.";
+  }
 
   document.getElementById("reset-button")?.addEventListener("click", () => {
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
@@ -54,8 +64,8 @@ async function init() {
 
 async function getSeedOrFallback(wordlist) {
   try {
-    const response = await fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint");
-    const data = await response.json();
+    const res = await fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint");
+    const data = await res.json();
     if (data?.word && data?.seed) {
       const played = localStorage.getItem(`used-${STORAGE_KEY_PREFIX}-${data.seed}`);
       if (!played) {
@@ -64,10 +74,11 @@ async function getSeedOrFallback(wordlist) {
       }
     }
   } catch (e) {
-    console.warn("Seed fetch failed. Using fallback word.");
+    console.warn("Seed fetch failed:", e);
   }
 
-  // fallback
+  if (!wordlist.length) return { word: "WORDL", key: "fallback-static" };
+
   const index = Math.floor(Math.random() * wordlist.length);
   return { word: wordlist[index].toUpperCase(), key: `random-${Date.now()}` };
 }
