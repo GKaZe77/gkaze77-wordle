@@ -5,33 +5,38 @@ import { evaluateGuess } from "../components/feedback.js";
 
 const MAX_GUESSES = 6;
 const STORAGE_KEY_PREFIX = "wordle-blueprint";
-let wordlist = [];
+let wordList = [];
 let guesses = [];
 let feedbacks = [];
-let targetWord = "";
+let wordToGuess = "";
 let seedKey = "";
 let seedUsed = false;
 let aiTier = Math.floor(Math.random() * 4) + 1;
 
-let state = {};
-function getState() { return state; }
-function setState(partial) { state = { ...state, ...partial }; }
-
-init();
-
 async function init() {
   try {
-    wordlist = await fetch("../data/wordlist.json").then(res => res.json());
+    const res = await fetch("https://api.gkaze77.com/wordle/wordlist");
+    wordList = await res.json();
   } catch {
-    wordlist = ["WORDL"];
+    wordList = ["LOGIC"];
   }
 
-  const metadata = await getSeedOrFallback(wordlist);
-  targetWord = metadata.word;
-  seedKey = metadata.key;
+  try {
+    const res = await fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint");
+    const data = await res.json();
+    if (data?.word && data?.seed) {
+      seedUsed = true;
+      seedKey = data.seed;
+      wordToGuess = data.word.toUpperCase();
+    }
+  } catch {
+    const fallback = wordList[Math.floor(Math.random() * wordList.length)]?.toUpperCase() || "ERROR";
+    wordToGuess = fallback;
+    seedKey = `random-${Date.now()}`;
+  }
 
   updateTitle();
-  updateSeedStatus();
+  updateSeedInfo();
 
   prefillWithAI();
   guesses.push("");
@@ -40,91 +45,36 @@ async function init() {
   renderBoard(MAX_GUESSES, guesses, feedbacks);
   renderKeyboard(onKeyPress);
   setupTimer();
-  setState({ guesses, feedbacks });
-
-  document.getElementById("reset-button")?.addEventListener("click", () => {
-    if (seedUsed && !seedKey.startsWith("random-")) {
-      localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
-    }
-    location.reload();
-  });
-
-  window.addEventListener("keydown", (e) => {
-    let key = e.key;
-    if (key === "Backspace") key = "⌫";
-    else if (key === "Enter") key = "ENTER";
-    else if (/^[a-zA-Z]$/.test(key)) key = key.toUpperCase();
-    else return;
-    onKeyPress(key);
-  });
 }
 
 function onKeyPress(letter) {
-  const rowIndex = guesses.length - 1;
-  let row = guesses[rowIndex] || "";
+  const currentIndex = guesses.length - 1;
+  let currentGuess = guesses[currentIndex] || '';
+  if (feedbacks[currentIndex]) return;
 
-  if (feedbacks[rowIndex]) return;
+  if (letter === 'ENTER') {
+    if (currentGuess.length !== 5 || !wordList.includes(currentGuess.toUpperCase())) return;
 
-  if (letter === "ENTER") {
-    if (row.length !== 5 || !wordlist.includes(row.toUpperCase())) return;
+    currentGuess = currentGuess.toUpperCase();
+    const fb = evaluateGuess(currentGuess, wordToGuess);
+    guesses[currentIndex] = currentGuess;
+    feedbacks[currentIndex] = fb;
 
-    row = row.toUpperCase();
-    const fb = evaluateGuess(row, targetWord);
-    guesses[rowIndex] = row;
-    feedbacks[rowIndex] = fb;
+    updateKeyColors(fb, currentGuess);
+    renderBoard(MAX_GUESSES, guesses, feedbacks, currentIndex);
 
-    updateKeyColors(fb, row);
-    renderBoard(MAX_GUESSES, guesses, feedbacks, rowIndex);
-    renderEndScreen(row === targetWord, targetWord, () => location.reload());
+    const isCorrect = currentGuess === wordToGuess;
+    renderEndScreen(isCorrect, wordToGuess, () => location.reload());
 
-    if (seedUsed && !seedKey.startsWith("random-")) {
+    if (!seedKey.startsWith("random-")) {
       localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
     }
   } else if (letter === "⌫") {
-    guesses[rowIndex] = row.slice(0, -1);
+    guesses[currentIndex] = currentGuess.slice(0, -1);
     renderBoard(MAX_GUESSES, guesses, feedbacks);
-  } else if (/^[A-Z]$/.test(letter) && row.length < 5) {
-    guesses[rowIndex] = row + letter;
+  } else if (/^[A-Z]$/.test(letter) && currentGuess.length < 5) {
+    guesses[currentIndex] = currentGuess + letter;
     renderBoard(MAX_GUESSES, guesses, feedbacks);
-  }
-
-  setState({ guesses, feedbacks });
-}
-
-async function getSeedOrFallback(wordlist) {
-  try {
-    const res = await fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint");
-    const data = await res.json();
-    if (data?.word && data?.seed) {
-      const played = localStorage.getItem(`used-${STORAGE_KEY_PREFIX}-${data.seed}`);
-      if (!played) {
-        seedUsed = true;
-        return { word: data.word.toUpperCase(), key: data.seed };
-      }
-    }
-  } catch (err) {
-    console.warn("Seed fetch failed. Using fallback.", err);
-  }
-
-  const blacklist = new Set(["YENTE", "RESEE", "ABASE", "REUSE", "WORDS"]);
-  const filtered = wordlist.filter(w => !blacklist.has(w.toUpperCase()));
-  const fallback = filtered[Math.floor(Math.random() * filtered.length)]?.toUpperCase() || "WORDL";
-  const key = `random-${fallback}-${Date.now()}`;
-  return { word: fallback, key };
-}
-
-function updateSeedStatus() {
-  const el = document.getElementById("seed-info");
-  el.textContent = seedUsed
-    ? `🧩 Shared Wordle (Seed: ${seedKey})`
-    : `🎲 Random Wordle (AI Tier ${aiTier})`;
-}
-
-function updateTitle() {
-  const el = document.getElementById("game-title");
-  if (el) {
-    el.textContent = seedUsed ? "📐 Blueprint Wordle (Seed)" : "📐 Blueprint Wordle (Random)";
-    el.title = seedUsed ? `Seed: ${seedKey}` : "Randomly generated logic board";
   }
 }
 
@@ -133,8 +83,8 @@ function prefillWithAI() {
   let used = new Set();
 
   for (let i = 0; i < 5; i++) {
-    const guess = generateGuess(wordlist, known, used);
-    const fb = evaluateGuess(guess, targetWord);
+    const guess = generateGuess(wordList, known, used);
+    const fb = evaluateGuess(guess, wordToGuess);
 
     fb.forEach((f, idx) => {
       if (f === "🟩") known[idx] = guess[idx];
@@ -146,27 +96,38 @@ function prefillWithAI() {
   }
 }
 
-function generateGuess(wordlist, known, used) {
-  const candidates = wordlist.filter(w =>
-    known.every((c, i) => !c || w[i] === c)
-  );
-
+function generateGuess(list, known, used) {
+  const candidates = list.filter(w => known.every((c, i) => !c || w[i] === c));
   switch (aiTier) {
-    case 1: return ["SLATE", "CRANE", "AUDIO", "REACT", "POINT", "BLEND", "CHART", "RAISE"][Math.floor(Math.random() * 8)];
+    case 1: return ["CRANE", "AUDIO", "RAISE", "POINT", "BLEND"][Math.floor(Math.random() * 5)];
     case 2: return candidates.find(w => [...w].some(l => used.has(l))) || candidates[0];
     case 3: return candidates[Math.floor(Math.random() * candidates.length)];
-    case 4: return bluff(candidates, targetWord) || candidates[0];
-    default: return targetWord;
+    case 4: return bluff(candidates, wordToGuess) || candidates[0];
+    default: return wordToGuess;
   }
 }
 
-function bluff(candidates, correct) {
-  const wrong = candidates.filter(w => w !== correct && sharedLetters(w, correct) >= 3);
-  return wrong[Math.floor(Math.random() * wrong.length)];
+function bluff(candidates, target) {
+  return candidates.filter(w => w !== target && sharedLetters(w, target) >= 3)[0];
 }
 
 function sharedLetters(a, b) {
   return [...a].filter(l => b.includes(l)).length;
+}
+
+function updateTitle() {
+  const el = document.getElementById("game-title");
+  if (!el) return;
+  el.textContent = seedUsed ? "📐 Blueprint Wordle (Seed)" : "📐 Blueprint Wordle (Random)";
+  el.title = seedUsed ? `Seed: ${seedKey}` : "AI-generated logic board";
+}
+
+function updateSeedInfo() {
+  const el = document.getElementById("seed-info");
+  if (!el) return;
+  el.textContent = seedUsed
+    ? `🧩 Shared Blueprint (Seed: ${seedKey})`
+    : `🎲 AI Tier ${aiTier}`;
 }
 
 function setupTimer() {
@@ -180,3 +141,19 @@ function setupTimer() {
   update();
   setInterval(update, 1000);
 }
+
+document.getElementById("reset-button")?.addEventListener("click", () => {
+  localStorage.removeItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`);
+  location.reload();
+});
+
+window.addEventListener("keydown", (e) => {
+  let key = e.key;
+  if (key === "Backspace") key = "⌫";
+  else if (key === "Enter") key = "ENTER";
+  else if (/^[a-zA-Z]$/.test(key)) key = key.toUpperCase();
+  else return;
+  onKeyPress(key);
+});
+
+window.onload = init;
