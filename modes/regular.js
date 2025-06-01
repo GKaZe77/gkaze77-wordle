@@ -12,7 +12,6 @@ let targetWord = "";
 let seedKey = "";
 let seedUsed = false;
 
-// inline Migrate state.js Logic 
 let state = {};
 function getState() { return state; }
 function setState(partial) { state = { ...state, ...partial }; }
@@ -47,12 +46,12 @@ async function init() {
   });
 
   window.addEventListener("keydown", (e) => {
-    let key = e.key.toUpperCase();
-    if (key === "BACKSPACE") key = "⌫";
-    if (key === "ENTER") key = "ENTER";
-    if ((/^[A-Z]$/.test(key) && key.length === 1) || key === "ENTER" || key === "⌫") {
-      onKeyPress(key);
-    }
+    let key = e.key;
+    if (key === "Backspace") key = "⌫";
+    else if (key === "Enter") key = "ENTER";
+    else if (/^[a-zA-Z]$/.test(key)) key = key.toUpperCase();
+    else return;
+    onKeyPress(key);
   });
 }
 
