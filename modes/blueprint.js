@@ -15,8 +15,14 @@ let aiTier = Math.floor(Math.random() * 4) + 1;
 
 async function init() {
   try {
-    const res = await fetch("https://api.gkaze77.com/wordle/wordlist");
-    wordList = await res.json();
+   const seedRes = await fetch("https://api.gkaze77.com/wordle/seed?mode=...");
+const generalRes = await fetch("https://api.gkaze77.com/wordle/wordlist-general");
+
+const generalWords = await generalRes.json(); // for validation
+const seedData = await seedRes.json(); // for official seed
+wordList = generalWords;
+wordToGuess = seedData.word.toUpperCase();
+
   } catch {
     wordList = ["LOGIC"];
   }
