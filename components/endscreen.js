@@ -1,70 +1,46 @@
-let cleanupCallback = null;
+// components/endscreen.js
 
 /**
- * Renders the end screen and binds replay/menu logic
- * @param {boolean} isWin - Whether the user won
- * @param {string} answer - The correct word
- * @param {Function} onRestart - Callback to run if "Play Again" clicked
+ * Renders the end screen UI.
+ * @param {boolean} isWin - Whether the player won.
+ * @param {string} word - The correct word.
+ * @param {Function} onReset - Callback for reset button.
  */
-export function renderEndScreen(isWin, answer, onRestart) {
-  cleanupEndScreen();
+export async function renderEndScreen(isWin, word, onReset) {
+  const container = document.getElementById("endscreen");
+  container.innerHTML = "";
 
-  const container = document.getElementById('endscreen');
-  if (!container) return;
+  const message = document.createElement("div");
+  message.className = "end-message";
 
-  cleanupCallback = onRestart;
+  const title = document.createElement("h2");
+  title.textContent = isWin ? "🎉 You Win!" : "❌ You Lose!";
+  message.appendChild(title);
 
-  fetch(`https://api.gkaze77.com/wordle/definition?word=${answer}`)
-    .then(res => res.ok ? res.json() : null)
-    .then(json => {
-      const def = json?.definition;
-      const pos = json?.partOfSpeech;
-      const defHTML = def
-        ? `<p class="word-definition"><em>${pos}</em>: ${def}</p>`
-        : `<p class="word-definition"><em>No definition available.</em></p>`;
+  const answer = document.createElement("p");
+  answer.textContent = `The word was: ${word}`;
+  message.appendChild(answer);
 
-      container.innerHTML = `
-        <div class="end-message">
-          <h2>${isWin ? 'You Win!' : 'Game Over'}</h2>
-          <p>The word was: <strong>${answer}</strong></p>
-          ${defHTML}
-          <div class="end-buttons">
-            <button id="btn-back-menu">Back to Menu</button>
-            <button id="btn-play-again">Play Again</button>
-          </div>
-        </div>
-      `;
-    })
-    .catch(() => {
-      container.innerHTML = `
-        <div class="end-message">
-          <h2>${isWin ? 'You Win!' : 'Game Over'}</h2>
-          <p>The word was: <strong>${answer}</strong></p>
-          <p class="word-definition"><em>No definition found.</em></p>
-          <div class="end-buttons">
-            <button id="btn-back-menu">Back to Menu</button>
-            <button id="btn-play-again">Play Again</button>
-          </div>
-        </div>
-      `;
-    })
-    .finally(() => {
-      document.getElementById('btn-back-menu')?.addEventListener('click', () => {
-        window.location.href = '../index.html';
-      });
-      document.getElementById('btn-play-again')?.addEventListener('click', () => {
-        if (typeof cleanupCallback === 'function') {
-          cleanupCallback();
-        }
-      });
-    });
-}
+  const def = document.createElement("p");
+  def.textContent = "Looking up definition...";
+  message.appendChild(def);
 
-/**
- * Clears endscreen DOM and resets callback
- */
-export function cleanupEndScreen() {
-  const container = document.getElementById('endscreen');
-  if (container) container.innerHTML = '';
-  cleanupCallback = null;
+  try {
+    const res = await fetch(`https://api.gkaze77.com/wordle/definition?word=${word}`);
+    if (!res.ok) throw new Error("Definition not found");
+    const data = await res.json();
+
+    def.textContent = data.definition
+      ? `🧠 ${data.partOfSpeech}: ${data.definition}`
+      : "❔ No definition found.";
+  } catch {
+    def.textContent = "❔ No definition found.";
+  }
+
+  const button = document.createElement("button");
+  button.textContent = "Play Again";
+  button.addEventListener("click", onReset);
+  message.appendChild(button);
+
+  container.appendChild(message);
 }
