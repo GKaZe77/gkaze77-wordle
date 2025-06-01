@@ -55,17 +55,13 @@ body {
 }
 
 @keyframes flip {
-  0% {
-    transform: rotateX(0deg);
-  }
+  0% { transform: rotateX(0deg); }
   49.99% {
     transform: rotateX(90deg);
     background-color: #111;
     color: transparent;
   }
-  50% {
-    transform: rotateX(90deg);
-  }
+  50% { transform: rotateX(90deg); }
   100% {
     transform: rotateX(0deg);
     color: white;
@@ -109,7 +105,7 @@ body {
 .keyboard-key {
   margin: 0.15rem;
   padding: 0.75rem;
-  font-size: 16px; /* iOS zoom fix */
+  font-size: 16px;
   font-weight: bold;
   border: none;
   border-radius: 4px;
@@ -118,7 +114,7 @@ body {
   min-width: 2.5rem;
   cursor: pointer;
   transition: background-color 0.3s;
-  touch-action: manipulation; /* iOS zoom fix */
+  touch-action: manipulation;
 }
 
 .keyboard-key[data-key='ENTER'],
@@ -182,13 +178,13 @@ body {
 .end-message button {
   margin: 0.5rem;
   padding: 0.75rem 1.25rem;
-  font-size: 16px; /* iOS zoom fix */
+  font-size: 16px;
   background-color: #444;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  touch-action: manipulation; /* iOS zoom fix */
+  touch-action: manipulation;
 }
 
 .end-message button:hover {
@@ -204,8 +200,8 @@ body {
   border-radius: 4px;
   margin-top: 1rem;
   cursor: pointer;
-  font-size: 16px; /* iOS zoom fix */
-  touch-action: manipulation; /* iOS zoom fix */
+  font-size: 16px;
+  touch-action: manipulation;
 }
 
 #reset-button:hover {
