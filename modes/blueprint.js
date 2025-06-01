@@ -30,9 +30,9 @@ async function init() {
   updateTitle();
   updateSeedStatus();
 
-  prefillWithAI(); // First 5 guesses
-  guesses.push(""); // Player input
-  feedbacks.push(null); // Empty feedback
+  prefillWithAI();
+  guesses.push("");
+  feedbacks.push(null);
 
   renderBoard(MAX_GUESSES, guesses, feedbacks);
   renderKeyboard(onKeyPress);
@@ -97,16 +97,15 @@ async function getSeedOrFallback(wordlist) {
         return { word: data.word.toUpperCase(), key: data.seed };
       }
     }
-  } catch {
-    console.warn("Seed fetch failed. Using fallback.");
+  } catch (err) {
+    console.warn("Seed fetch failed. Using fallback.", err);
   }
 
-  // Fallback logic with duplicate protection
-  const blacklist = ["YENTE", "RESEE", "ABASE", "REUSE", "WORDS"];
-  const filtered = wordlist.filter(w => !blacklist.includes(w.toUpperCase()));
-  const pick = filtered[Math.floor(Math.random() * filtered.length)];
-  const fallbackKey = `random-${pick}-${Date.now()}`;
-  return { word: pick.toUpperCase(), key: fallbackKey };
+  const blacklist = new Set(["YENTE", "RESEE", "ABASE", "REUSE", "WORDS"]);
+  const filtered = wordlist.filter(w => !blacklist.has(w.toUpperCase()));
+  const fallback = filtered[Math.floor(Math.random() * filtered.length)]?.toUpperCase() || "WORDL";
+  const key = `random-${fallback}-${Date.now()}`;
+  return { word: fallback, key };
 }
 
 function updateSeedStatus() {
