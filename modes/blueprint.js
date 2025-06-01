@@ -40,9 +40,11 @@ async function init() {
   setState({ guesses, feedbacks });
 
   document.getElementById("reset-button")?.addEventListener("click", () => {
-    localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
-    location.reload();
-  });
+  if (seedUsed && !seedKey.startsWith("random-")) {
+    localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
+  }
+  location.reload();
+});
 
   window.addEventListener("keydown", (e) => {
     let key = e.key.toUpperCase();
