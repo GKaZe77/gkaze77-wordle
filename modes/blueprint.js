@@ -14,6 +14,11 @@ let seedKey = "";
 let seedUsed = false;
 let aiTier = Math.floor(Math.random() * 4) + 1;
 
+// inline Migrate state.js Logic 
+let state = {};
+function getState() { return state; }
+function setState(partial) { state = { ...state, ...partial }; }
+
 init();
 
 async function init() {
