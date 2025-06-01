@@ -1,122 +1,131 @@
 import { renderBoard } from "../components/board.js";
 import { renderKeyboard, updateKeyColors } from "../components/keyboard.js";
 import { renderEndScreen } from "../components/endscreen.js";
-import { evaluateGuessWithGlitch } from "../components/feedback.js";
+import { evaluateGuess } from "../components/feedback.js";
 
 const MAX_GUESSES = 6;
-const STORAGE_KEY_PREFIX = "wordle-corrupted";
-let wordlist = [];
+const STORAGE_KEY_PREFIX = 'wordle-corrupted';
+
+let wordList = [];
+let wordToGuess = '';
 let guesses = [];
 let feedbacks = [];
-let targetWord = "";
-let seedKey = "";
-let seedUsed = false;
-
-let state = {};
-function getState() { return state; }
-function setState(partial) { state = { ...state, ...partial }; }
-
-init();
+let mode = 'seed';
+let seedKey = '';
 
 async function init() {
   try {
-    wordlist = await fetch("../data/wordlist.json").then(res => res.json());
+    const res = await fetch('https://api.gkaze77.com/wordle/wordlist');
+    wordList = await res.json();
   } catch {
-    wordlist = ["TRICK"];
+    wordList = ['TRICK'];
   }
 
-  const metadata = await getSeedOrFallback(wordlist);
-  targetWord = metadata.word;
-  seedKey = metadata.key;
-
-  guesses = [""];
-  feedbacks = [];
+  try {
+    const res = await fetch('https://api.gkaze77.com/wordle/seed?mode=corrupted');
+    const data = await res.json();
+    if (data?.word && data?.seed) {
+      seedKey = data.seed;
+      const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || '{}');
+      if (saved.word && saved.guesses && saved.feedbacks) {
+        wordToGuess = saved.word;
+        guesses = saved.guesses;
+        feedbacks = saved.feedbacks;
+        mode = saved.mode || 'seed';
+      } else {
+        wordToGuess = data.word.toUpperCase();
+        guesses = [''];
+        feedbacks = [];
+        mode = 'seed';
+        saveProgress();
+      }
+    }
+  } catch {
+    wordToGuess = wordList[Math.floor(Math.random() * wordList.length)].toUpperCase();
+    guesses = [''];
+    feedbacks = [];
+    mode = 'random';
+  }
 
   renderBoard(MAX_GUESSES, guesses, feedbacks);
+  updateKeyboardFromSavedGuesses();
   renderKeyboard(onKeyPress);
-  setupTimer();
   updateTitle();
-  setState({ guesses, feedbacks });
+  startCountdown();
+}
 
-  document.getElementById("reset-button")?.addEventListener("click", () => {
-    if (seedUsed && !seedKey.startsWith("random-")) {
-      localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
+function updateKeyboardFromSavedGuesses() {
+  for (let i = 0; i < feedbacks.length; i++) {
+    if (feedbacks[i]?.length === 5) {
+      updateKeyColors(feedbacks[i], guesses[i]);
     }
-    location.reload();
-  });
+  }
+}
 
-  window.addEventListener("keydown", (e) => {
-    let key = e.key;
-    if (key === "Backspace") key = "⌫";
-    else if (key === "Enter") key = "ENTER";
-    else if (/^[a-zA-Z]$/.test(key)) key = key.toUpperCase();
-    else return;
-    onKeyPress(key);
-  });
+function saveProgress() {
+  if (!seedKey) return;
+  localStorage.setItem(`${STORAGE_KEY_PREFIX}-${seedKey}`, JSON.stringify({
+    word: wordToGuess,
+    guesses,
+    feedbacks,
+    mode
+  }));
 }
 
 function onKeyPress(letter) {
-  const i = guesses.length - 1;
-  let row = guesses[i] || "";
-  if (feedbacks[i]) return;
+  const currentIndex = guesses.length - 1;
+  let currentGuess = guesses[currentIndex] || '';
+  if (feedbacks[currentIndex]) return;
 
-  if (letter === "ENTER") {
-    if (row.length !== 5 || !wordlist.includes(row.toUpperCase())) return;
+  if (letter === 'ENTER') {
+    if (currentGuess.length !== 5) return;
+    if (!wordList.includes(currentGuess.toUpperCase())) return;
 
-    row = row.toUpperCase();
-    const fb = evaluateGuessWithGlitch(row, targetWord);
-    guesses[i] = row;
-    feedbacks[i] = fb;
+    currentGuess = currentGuess.toUpperCase();
 
-    updateKeyColors(fb, row);
-    renderBoard(MAX_GUESSES, guesses, feedbacks, i);
+    // GLITCHY logic override (deceptive feedback)
+    const trueResult = evaluateGuess(currentGuess, wordToGuess);
+    const glitchedResult = [...trueResult];
 
-    const win = row === targetWord;
-    if (win || guesses.length >= MAX_GUESSES) {
-      renderEndScreen(win, targetWord, () => location.reload());
-      if (seedUsed && !seedKey.startsWith("random-")) {
-        localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
-      }
-    } else {
-      guesses.push("");
+    // Add random glitch effect: sometimes hide one correct letter
+    for (let i = 0; i < 5; i++) {
+      if (Math.random() < 0.2) glitchedResult[i] = '⬜️';
     }
 
-    setState({ guesses, feedbacks });
-  } else if (letter === "⌫") {
-    guesses[i] = row.slice(0, -1);
+    feedbacks[currentIndex] = glitchedResult;
+    updateKeyColors(glitchedResult, currentGuess);
+    renderBoard(MAX_GUESSES, guesses, feedbacks, currentIndex);
+    saveProgress();
+
+    const isCorrect = currentGuess === wordToGuess;
+    const gameOver = isCorrect || guesses.length >= MAX_GUESSES;
+
+    if (gameOver) {
+      renderEndScreen(isCorrect, wordToGuess, startFreshGame);
+      if (seedKey) localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
+    } else {
+      guesses[currentIndex] = currentGuess;
+      guesses.push('');
+    }
+  } else if (letter === '⌫') {
+    guesses[currentIndex] = currentGuess.slice(0, -1);
     renderBoard(MAX_GUESSES, guesses, feedbacks);
-  } else if (/^[A-Z]$/.test(letter) && row.length < 5) {
-    guesses[i] = row + letter;
+  } else if (/^[A-Z]$/.test(letter) && currentGuess.length < 5) {
+    guesses[currentIndex] = currentGuess + letter;
     renderBoard(MAX_GUESSES, guesses, feedbacks);
   }
-
-  setState({ guesses, feedbacks });
-}
-
-async function getSeedOrFallback(wordlist) {
-  try {
-    const res = await fetch("https://api.gkaze77.com/wordle/seed?mode=corrupted");
-    const data = await res.json();
-    if (data?.word && data?.seed) {
-      const played = localStorage.getItem(`used-${STORAGE_KEY_PREFIX}-${data.seed}`);
-      if (!played) {
-        seedUsed = true;
-        return { word: data.word.toUpperCase(), key: data.seed };
-      }
-    }
-  } catch {}
-  const fallback = wordlist[Math.floor(Math.random() * wordlist.length)];
-  return { word: fallback.toUpperCase(), key: `random-${Date.now()}` };
 }
 
 function updateTitle() {
-  const el = document.getElementById("game-title");
-  if (!el) return;
-  el.textContent = seedUsed ? "🧪 Corrupted Wordle (Seed)" : "🧪 Corrupted Wordle (Random)";
-  el.title = seedUsed ? `Seed: ${seedKey}` : "Random logic puzzle with glitches";
+  const title = document.getElementById('game-title');
+  if (!title) return;
+  title.textContent = mode === 'seed' ? '🧪 Corrupted Wordle (Seed)' : '🧪 Corrupted Wordle (Random)';
+  title.title = mode === 'seed'
+    ? `Seed: ${seedKey}\nFeedback may lie.`
+    : `Random corrupted game.`
 }
 
-function setupTimer() {
+function startCountdown() {
   const el = document.getElementById("timer");
   function update() {
     const ms = 3600000 - (Date.now() % 3600000);
@@ -127,3 +136,21 @@ function setupTimer() {
   update();
   setInterval(update, 1000);
 }
+
+function startFreshGame() {
+  if (seedKey) localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
+  location.reload();
+}
+
+document.getElementById('reset-button')?.addEventListener('click', startFreshGame);
+
+window.addEventListener('keydown', (e) => {
+  let key = e.key;
+  if (key === 'Backspace') key = '⌫';
+  else if (key === 'Enter') key = 'ENTER';
+  else if (/^[a-zA-Z]$/.test(key)) key = key.toUpperCase();
+  else return;
+  onKeyPress(key);
+});
+
+window.onload = init;
