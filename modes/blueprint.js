@@ -5,7 +5,7 @@ import { evaluateGuess } from "../components/feedback.js";
 import { setState } from "../utils/state.js";
 
 const MAX_GUESSES = 6;
-const STORAGE_KEY_PREFIX = 'wordle-blueprint';
+const STORAGE_KEY_PREFIX = "wordle-blueprint";
 let wordlist = [];
 let guesses = [];
 let feedbacks = [];
@@ -30,8 +30,8 @@ async function init() {
   updateTitle();
   updateSeedStatus();
 
-  prefillWithAI();      // First 5 guesses
-  guesses.push("");     // Player input
+  prefillWithAI(); // First 5 guesses
+  guesses.push(""); // Player input
   feedbacks.push(null); // Empty feedback
 
   renderBoard(MAX_GUESSES, guesses, feedbacks);
@@ -72,7 +72,7 @@ function onKeyPress(letter) {
     renderBoard(MAX_GUESSES, guesses, feedbacks, rowIndex);
     renderEndScreen(row === targetWord, targetWord, () => location.reload());
 
-    if (seedUsed) {
+    if (seedUsed && !seedKey.startsWith("random-")) {
       localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
     }
   } else if (letter === "⌫") {
@@ -97,9 +97,16 @@ async function getSeedOrFallback(wordlist) {
         return { word: data.word.toUpperCase(), key: data.seed };
       }
     }
-  } catch {}
-  const i = Math.floor(Math.random() * wordlist.length);
-  return { word: wordlist[i].toUpperCase(), key: `random-${Date.now()}` };
+  } catch {
+    console.warn("Seed fetch failed. Using fallback.");
+  }
+
+  // Fallback logic with duplicate protection
+  const blacklist = ["YENTE", "RESEE", "ABASE", "REUSE", "WORDS"];
+  const filtered = wordlist.filter(w => !blacklist.includes(w.toUpperCase()));
+  const pick = filtered[Math.floor(Math.random() * filtered.length)];
+  const fallbackKey = `random-${pick}-${Date.now()}`;
+  return { word: pick.toUpperCase(), key: fallbackKey };
 }
 
 function updateSeedStatus() {
