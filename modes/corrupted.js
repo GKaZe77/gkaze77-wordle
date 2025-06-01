@@ -2,7 +2,6 @@ import { renderBoard } from "../components/board.js";
 import { renderKeyboard, updateKeyColors } from "../components/keyboard.js";
 import { renderEndScreen } from "../components/endscreen.js";
 import { evaluateGuessWithGlitch } from "../components/feedback.js";
-import { setState } from "../utils/state.js";
 
 const MAX_GUESSES = 6;
 const STORAGE_KEY_PREFIX = "wordle-corrupted";
