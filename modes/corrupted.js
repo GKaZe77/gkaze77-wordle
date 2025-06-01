@@ -13,6 +13,11 @@ let targetWord = "";
 let seedKey = "";
 let seedUsed = false;
 
+// inline Migrate state.js Logic 
+let state = {};
+function getState() { return state; }
+function setState(partial) { state = { ...state, ...partial }; }
+
 init();
 
 async function init() {
