@@ -1,5 +1,3 @@
-import { getState } from "../utils/state.js";
-
 const keyboardLayout = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -7,12 +5,12 @@ const keyboardLayout = [
 ];
 
 const keyboardContainer = document.getElementById("keyboard");
-const keyClassMap = {}; // Tracks best known state per letter
-let keyHandler = null;   // ✅ Store last onKeyPress callback
+const keyClassMap = {};
+let lastKeyHandler = null; // ✅ NEW
 
 export function renderKeyboard(onKeyPress = null) {
-  if (onKeyPress) keyHandler = onKeyPress; // ✅ Save for reuse
-  if (!keyHandler) return;
+  if (onKeyPress) lastKeyHandler = onKeyPress; // ✅ Persist handler
+  if (!lastKeyHandler) return;
 
   keyboardContainer.innerHTML = "";
 
@@ -29,7 +27,7 @@ export function renderKeyboard(onKeyPress = null) {
       if (status) button.classList.add(`key-${status}`);
 
       button.setAttribute("data-key", key);
-      button.addEventListener("click", () => keyHandler(key));
+      button.addEventListener("click", () => lastKeyHandler(key)); // ✅ uses persistent handler
 
       rowDiv.appendChild(button);
     });
@@ -42,13 +40,11 @@ export function updateKeyColors(feedback, guess) {
   for (let i = 0; i < guess.length; i++) {
     const letter = guess[i];
     const status = emojiToStatus(feedback[i]);
-
     if (!keyClassMap[letter] || statusPriority(status) > statusPriority(keyClassMap[letter])) {
       keyClassMap[letter] = status;
     }
   }
-
-  renderKeyboard(); // ✅ will now preserve keyHandler
+  renderKeyboard(); // ✅ now safe
 }
 
 function emojiToStatus(symbol) {
