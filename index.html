@@ -3,74 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wordle Modes</title>
+  <title>GKaZe77 Wordle Hub</title>
   <link rel="stylesheet" href="css/game.css" />
   <style>
     body {
       background-color: #111;
       color: #eee;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
+      gap: 2rem;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
       margin: 0;
-      padding: 2rem;
+      color: white;
     }
 
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    ul.mode-list {
-      list-style: none;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1.5rem;
       width: 100%;
-      max-width: 600px;
+      max-width: 1000px;
     }
 
-    .mode-item {
+    .mode-card {
       background-color: #1a1a1a;
-      padding: 1rem;
+      border-left: 5px solid #444;
       border-radius: 8px;
-      border-left: 5px solid;
-      transition: background 0.3s;
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    .mode-item:hover {
+    .mode-card:hover {
       background-color: #222;
+      transform: translateY(-3px);
     }
 
-    .mode-link {
-      font-size: 1.2rem;
+    .mode-card h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .mode-card p {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #bbb;
+    }
+
+    .mode-card a {
+      margin-top: 1rem;
+      display: inline-block;
       font-weight: bold;
       text-decoration: none;
-      display: block;
-      margin-bottom: 0.25rem;
+      color: #fff;
+      background: #333;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-align: center;
     }
 
-    .mode-desc {
-      font-size: 0.9rem;
-      color: #ccc;
+    .mode-card a:hover {
+      background-color: #555;
     }
 
-    .mode-regular { border-color: #6aaa64; }
-    .mode-corrupted { border-color: #b46eb1; }
-    .mode-blueprint { border-color: #5ca3d0; }
+    .mode-regular    { border-left-color: #6aaa64; }
+    .mode-corrupted  { border-left-color: #b46eb1; }
+    .mode-blueprint  { border-left-color: #5ca3d0; }
 
     #custom-share {
-      margin-top: 2rem;
-      padding: 1rem;
+      max-width: 1000px;
       background-color: #1a1a1a;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 600px;
       border-left: 5px solid #fbc02d;
+      padding: 1rem;
+      border-radius: 8px;
     }
 
     #custom-share button {
@@ -89,71 +102,79 @@
     }
 
     footer {
-      margin-top: 3rem;
       font-size: 0.85rem;
       color: #666;
+      text-align: center;
+      margin-top: 2rem;
     }
   </style>
 </head>
 <body>
-  <h1>Choose Your Wordle Mode</h1>
+  <header>
+    <h1>🎮 Wordle Mode Selector</h1>
+  </header>
 
-  <ul class="mode-list">
-    <li class="mode-item mode-regular">
-      <a href="modes/regular.html" class="mode-link">🟩 Regular Mode</a>
-      <div class="mode-desc">Classic 5-letter Wordle with hourly seeded words. All players get the same word each hour.</div>
-    </li>
-    <li class="mode-item mode-corrupted">
-      <a href="modes/corrupted.html" class="mode-link">🧪 Corrupted Mode</a>
-      <div class="mode-desc">Same rules as Regular, but feedback may lie. Adds paranoia and bluff logic with a glitchy theme.</div>
-    </li>
-    <li class="mode-item mode-blueprint">
-      <a href="modes/blueprint.html" class="mode-link">📐 Blueprint Mode</a>
-      <div class="mode-desc">You're shown a full board of guesses and feedback. Deduce the hidden word from the clues left behind.</div>
-    </li>
-  </ul>
+  <section class="mode-grid">
+    <div class="mode-card mode-regular">
+      <h2>🟩 Regular Mode</h2>
+      <p>Classic 5-letter Wordle. All players share a new word every hour.</p>
+      <a href="modes/regular.html">Play Regular</a>
+    </div>
+
+    <div class="mode-card mode-corrupted">
+      <h2>🧪 Corrupted Mode</h2>
+      <p>Feedback may lie. Designed to mess with your logic — trust nothing.</p>
+      <a href="modes/corrupted.html">Play Corrupted</a>
+    </div>
+
+    <div class="mode-card mode-blueprint">
+      <h2>📐 Blueprint Mode</h2>
+      <p>Analyze a full board of AI guesses. Deduce the original word.</p>
+      <a href="modes/blueprint.html">Play Blueprint</a>
+    </div>
+
+    <!-- Future Expansion Example
+    <div class="mode-card mode-custom">
+      <h2>🎲 Randomizer Mode</h2>
+      <p>A wacky challenge with shifting rulesets every round.</p>
+      <a href="#">Coming Soon</a>
+    </div>
+    -->
+  </section>
 
   <div id="custom-share">
-    <strong>🔗 Create Custom Word Game</strong>
-    <p>Choose a 5-letter word from the dictionary to generate a shareable link for any mode.</p>
+    <strong>🔗 Create Custom Word Challenge</strong>
+    <p>Pick a valid 5-letter word to generate a sharable challenge link for others.</p>
     <button onclick="createCustomLink()">Create Link</button>
   </div>
 
   <footer>
-    <p>Seeded Wordle Engine by GKaZe77</p>
+    <p>Powered by GKaZe77 — All modes are synced and seeded hourly.</p>
   </footer>
+
   <script>
-  function createCustomLink() {
-    fetch('./data/wordlist.json')
-      .then((res) => res.json())
-      .then((wordlist) => {
-        const input = prompt("Enter a 5-letter word from the word list:");
-        const word = input?.trim().toUpperCase();
-
-        if (!word || word.length !== 5 || !wordlist.includes(word)) {
-          alert("Invalid or unknown word.");
-          return;
-        }
-
-        // Simple hash implementation (same as used in seed.js)
-        let hash = 0;
-        for (let i = 0; i < word.length; i++) {
-          hash = (hash << 5) - hash + word.charCodeAt(i);
-          hash |= 0;
-        }
-
-        const url = `${location.origin}/modes/regular.html?seed=${Math.abs(hash)}`;
-        navigator.clipboard.writeText(url).then(() => {
-          alert("✅ Shareable link copied to clipboard:\n" + url);
-        }).catch(() => {
-          alert("Your link:\n" + url);
-        });
-      })
-      .catch(() => {
-        alert("❌ Failed to load word list.");
-      });
-  }
-</script>
-
+    function createCustomLink() {
+      fetch('./data/wordlist.json')
+        .then(res => res.json())
+        .then(wordlist => {
+          const input = prompt("Enter a 5-letter word from the list:");
+          const word = input?.trim().toUpperCase();
+          if (!word || word.length !== 5 || !wordlist.includes(word)) {
+            alert("Invalid or unknown word.");
+            return;
+          }
+          let hash = 0;
+          for (let i = 0; i < word.length; i++) {
+            hash = (hash << 5) - hash + word.charCodeAt(i);
+            hash |= 0;
+          }
+          const url = `${location.origin}/modes/regular.html?seed=${Math.abs(hash)}`;
+          navigator.clipboard.writeText(url)
+            .then(() => alert("✅ Link copied to clipboard:\n" + url))
+            .catch(() => alert("Link:\n" + url));
+        })
+        .catch(() => alert("❌ Could not load wordlist."));
+    }
+  </script>
 </body>
 </html>
