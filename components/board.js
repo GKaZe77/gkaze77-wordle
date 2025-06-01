@@ -1,3 +1,5 @@
+// components/board.js
+
 let wordDefinitions = null;
 
 /**
@@ -16,7 +18,7 @@ export function renderBoard(maxGuesses, guesses = [], feedbacks = [], justFlippe
       .then(res => res.json())
       .then(json => {
         wordDefinitions = json;
-        renderBoard(maxGuesses, guesses, feedbacks, justFlippedRow); // re-render once loaded
+        renderBoard(maxGuesses, guesses, feedbacks, justFlippedRow); // re-render
       });
     return;
   }
@@ -39,17 +41,18 @@ export function renderBoard(maxGuesses, guesses = [], feedbacks = [], justFlippe
           tile.classList.add('flip');
           tile.style.animationDelay = `${j * 300}ms`;
         }
-
-        if (feedback[j] === '🟩') tile.classList.add('feedback-correct');
-        else if (feedback[j] === '🟨') tile.classList.add('feedback-present');
-        else if (feedback[j] === '⬜️') tile.classList.add('feedback-absent');
+        tile.classList.add(
+          feedback[j] === '🟩' ? 'feedback-correct' :
+          feedback[j] === '🟨' ? 'feedback-present' :
+          feedback[j] === '⬜️' ? 'feedback-absent' : ''
+        );
       }
 
       row.appendChild(tile);
     }
 
-    if (isLockedIn && wordDefinitions[guess.toUpperCase()]) {
-      const def = wordDefinitions[guess.toUpperCase()];
+    const def = wordDefinitions[guess.toUpperCase()];
+    if (isLockedIn && def) {
       row.classList.add('hover-word');
       row.setAttribute('data-word', guess.toUpperCase());
       row.setAttribute('data-definition', `${def.partOfSpeech.toUpperCase()}: ${def.definition}`);
@@ -57,17 +60,15 @@ export function renderBoard(maxGuesses, guesses = [], feedbacks = [], justFlippe
       row.addEventListener('mouseenter', () => {
         const tooltip = document.createElement('div');
         tooltip.className = 'word-tooltip';
-        tooltip.textContent = `${def.partOfSpeech.toUpperCase()}: ${def.definition}`;
+        tooltip.textContent = row.dataset.definition;
         document.body.appendChild(tooltip);
-
         const rect = row.getBoundingClientRect();
         tooltip.style.top = `${rect.top - 30}px`;
         tooltip.style.left = `${rect.left}px`;
       });
 
       row.addEventListener('mouseleave', () => {
-        const tip = document.querySelector('.word-tooltip');
-        if (tip) tip.remove();
+        document.querySelector('.word-tooltip')?.remove();
       });
     }
 
