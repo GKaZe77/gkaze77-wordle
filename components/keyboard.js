@@ -6,32 +6,41 @@ const keysLayout = [
   ['ENTER','Z','X','C','V','B','N','M','←']
 ];
 
-
 export function renderKeyboard(onKeyPress) {
   const keyboard = document.getElementById('keyboard');
   if (!keyboard) return;
   keyboard.innerHTML = '';
 
-  keysLayout.forEach(rowStr => {
-    const row = document.createElement('div');
-    row.className = 'keyboard-row';
+  keysLayout.forEach(row => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keyboard-row';
 
-    rowStr.split('').forEach(char => {
+    row.forEach(char => {
       const key = document.createElement('button');
       key.className = 'keyboard-key';
-      key.textContent = char === '←' ? '⌫' : char;
-      key.setAttribute('data-key', char === '←' ? '⌫' : char);
+
+      if (char === '←') {
+        key.textContent = '⌫';
+        key.setAttribute('data-key', '⌫');
+      } else if (char === 'ENTER') {
+        key.textContent = '⏎';
+        key.setAttribute('data-key', 'ENTER');
+      } else {
+        key.textContent = char;
+        key.setAttribute('data-key', char);
+      }
 
       key.addEventListener('click', () => {
-        onKeyPress(char === '←' ? '⌫' : char);
+        onKeyPress(key.getAttribute('data-key'));
       });
 
-      row.appendChild(key);
+      rowDiv.appendChild(key);
     });
 
-    keyboard.appendChild(row);
+    keyboard.appendChild(rowDiv);
   });
 }
+
 
 export function updateKeyColors(feedback, guess) {
   const keys = document.querySelectorAll('.keyboard-key');
