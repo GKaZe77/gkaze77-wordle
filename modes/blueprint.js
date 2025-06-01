@@ -13,7 +13,6 @@ let seedKey = "";
 let seedUsed = false;
 let aiTier = Math.floor(Math.random() * 4) + 1;
 
-// inline Migrate state.js Logic 
 let state = {};
 function getState() { return state; }
 function setState(partial) { state = { ...state, ...partial }; }
@@ -44,19 +43,19 @@ async function init() {
   setState({ guesses, feedbacks });
 
   document.getElementById("reset-button")?.addEventListener("click", () => {
-  if (seedUsed && !seedKey.startsWith("random-")) {
-    localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
-  }
-  location.reload();
-});
+    if (seedUsed && !seedKey.startsWith("random-")) {
+      localStorage.setItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`, "1");
+    }
+    location.reload();
+  });
 
   window.addEventListener("keydown", (e) => {
-    let key = e.key.toUpperCase();
-    if (key === "BACKSPACE") key = "⌫";
-    if (key === "ENTER") key = "ENTER";
-    if ((/^[A-Z]$/.test(key) && key.length === 1) || key === "ENTER" || key === "⌫") {
-      onKeyPress(key);
-    }
+    let key = e.key;
+    if (key === "Backspace") key = "⌫";
+    else if (key === "Enter") key = "ENTER";
+    else if (/^[a-zA-Z]$/.test(key)) key = key.toUpperCase();
+    else return;
+    onKeyPress(key);
   });
 }
 
