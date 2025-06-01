@@ -1,77 +1,53 @@
-import { getState } from "../utils/state.js";
+// components/keyboard.js
 
-const keyboardLayout = [
-  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "←"]
+const keysLayout = [
+  'QWERTYUIOP',
+  'ASDFGHJKL',
+  'ENTERZXCVBNM←'
 ];
 
-const keyboardContainer = document.getElementById("keyboard");
-const keyClassMap = {}; // Tracks best known status per letter
-let lastKeyHandler = null; // Stores the last bound onKeyPress callback
+export function renderKeyboard(onKeyPress) {
+  const keyboard = document.getElementById('keyboard');
+  if (!keyboard) return;
+  keyboard.innerHTML = '';
 
-export function renderKeyboard(onKeyPress = null) {
-  if (onKeyPress) {
-    lastKeyHandler = onKeyPress;
-  }
+  keysLayout.forEach(rowStr => {
+    const row = document.createElement('div');
+    row.className = 'keyboard-row';
 
-  keyboardContainer.innerHTML = "";
+    rowStr.split('').forEach(char => {
+      const key = document.createElement('button');
+      key.className = 'keyboard-key';
+      key.textContent = char === '←' ? '⌫' : char;
+      key.setAttribute('data-key', char === '←' ? '⌫' : char);
 
-  keyboardLayout.forEach((row) => {
-    const rowDiv = document.createElement("div");
-    rowDiv.classList.add("keyboard-row");
+      key.addEventListener('click', () => {
+        onKeyPress(char === '←' ? '⌫' : char);
+      });
 
-    row.forEach((key) => {
-      const button = document.createElement("button");
-      button.textContent = key;
-      button.classList.add("keyboard-key");
-
-      const status = keyClassMap[key];
-      if (status) {
-        button.classList.add(`key-${status}`);
-      }
-
-      button.setAttribute("data-key", key);
-      if (lastKeyHandler) {
-       let mappedKey = key === "←" ? "⌫" : key;
-        button.addEventListener("click", () => lastKeyHandler(mappedKey));
-      }
-
-      rowDiv.appendChild(button);
+      row.appendChild(key);
     });
 
-    keyboardContainer.appendChild(rowDiv);
+    keyboard.appendChild(row);
   });
 }
 
 export function updateKeyColors(feedback, guess) {
-  for (let i = 0; i < guess.length; i++) {
+  const keys = document.querySelectorAll('.keyboard-key');
+  const map = {};
+
+  feedback.forEach((f, i) => {
     const letter = guess[i];
-    const fb = feedback[i];
-    const status = emojiToStatus(fb);
+    if (f === '🟩') map[letter] = 'key-green';
+    else if (f === '🟨' && map[letter] !== 'key-green') map[letter] = 'key-yellow';
+    else if (f === '⬜️' && !map[letter]) map[letter] = 'key-gray';
+  });
 
-    if (!keyClassMap[letter] || statusPriority(status) > statusPriority(keyClassMap[letter])) {
-      keyClassMap[letter] = status;
-    }
-  }
+  keys.forEach(k => {
+    const char = k.getAttribute('data-key');
+    if (!map[char]) return;
 
-  renderKeyboard(); // Re-render with preserved event binding
-}
-
-function emojiToStatus(symbol) {
-  switch (symbol) {
-    case "🟩": return "green";
-    case "🟨": return "yellow";
-    case "⬜️": return "gray";
-    default: return null;
-  }
-}
-
-function statusPriority(status) {
-  switch (status) {
-    case "green": return 3;
-    case "yellow": return 2;
-    case "gray": return 1;
-    default: return 0;
-  }
+    k.classList.remove('key-green', 'key-yellow', 'key-gray');
+    k.classList.add(map[char]);
+  });
 }
