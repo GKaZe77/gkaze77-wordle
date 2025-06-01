@@ -1,36 +1,28 @@
-/**
- * Renders the full game board based on guess state.
- * @param {number} maxGuesses - Total rows to render
- * @param {string[]} guesses - Array of guessed words
- * @param {string[][]} feedbacks - Emoji feedback (🟩🟨⬜️) per row
- * @param {number|null} justFlippedRow - Row index to animate
- */
-export function renderBoard(maxGuesses, guesses = [], feedbacks = [], justFlippedRow = null) {
-  const container = document.getElementById('game-container');
-  container.innerHTML = '';
+// components/board.js
 
-  for (let i = 0; i < maxGuesses; i++) {
-    const row = document.createElement('div');
-    row.className = 'guess-row';
+export function renderBoard(maxRows, guesses, feedbacks, highlightRow = -1) {
+  const container = document.getElementById("game-container");
+  container.innerHTML = "";
 
-    const guess = guesses[i] || '';
-    const feedback = feedbacks[i] || [];
-    const isLockedIn = feedback.length === 5;
+  for (let i = 0; i < maxRows; i++) {
+    const row = document.createElement("div");
+    row.className = "guess-row";
+
+    const guess = guesses[i] || "";
+    const fb = feedbacks[i] || [];
 
     for (let j = 0; j < 5; j++) {
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.textContent = guess[j] || '';
+      const tile = document.createElement("div");
+      tile.className = "tile";
 
-      if (isLockedIn) {
-        if (i === justFlippedRow) {
-          tile.classList.add('flip');
-          tile.style.animationDelay = `${j * 300}ms`;
-        }
+      const letter = guess[j] || "";
+      tile.textContent = letter;
 
-        if (feedback[j] === '🟩') tile.classList.add('feedback-correct');
-        else if (feedback[j] === '🟨') tile.classList.add('feedback-present');
-        else if (feedback[j] === '⬜️') tile.classList.add('feedback-absent');
+      if (fb[j]) {
+        tile.classList.add("flip");
+        if (fb[j] === "🟩") tile.classList.add("feedback-correct");
+        if (fb[j] === "🟨") tile.classList.add("feedback-present");
+        if (fb[j] === "⬜️") tile.classList.add("feedback-absent");
       }
 
       row.appendChild(tile);
