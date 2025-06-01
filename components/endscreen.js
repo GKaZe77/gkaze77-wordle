@@ -1,44 +1,39 @@
 // components/endscreen.js
-// Displays the final message + replay/menu buttons
 
 let cleanupCallback = null;
-let definitionData = null; // cache definition data once loaded
+let definitionData = null;
 
 /**
  * Renders the end screen and binds replay/menu logic
- * @param {boolean} isWin - Whether the user won
- * @param {string} answer - The correct word
- * @param {Function} onRestart - Callback to run if "Play Again" clicked
+ * @param {boolean} isWin
+ * @param {string} answer
+ * @param {Function} onRestart
  */
 export function renderEndScreen(isWin, answer, onRestart) {
-  cleanupEndScreen(); // clear prior content
+  cleanupEndScreen();
 
   const container = document.getElementById('endscreen');
   if (!container) return;
 
   cleanupCallback = onRestart;
 
-  // Load definition JSON if needed
   if (!definitionData) {
     fetch('../data/word_definitions.json')
-      .then((res) => res.json())
-      .then((json) => {
+      .then(res => res.json())
+      .then(json => {
         definitionData = json;
-        showEndScreen(container, isWin, answer, onRestart);
+        showEndScreen(container, isWin, answer);
       })
       .catch(() => {
-        definitionData = {}; // prevent future fetch attempts
-        showEndScreen(container, isWin, answer, onRestart);
+        definitionData = {};
+        showEndScreen(container, isWin, answer);
       });
   } else {
-    showEndScreen(container, isWin, answer, onRestart);
+    showEndScreen(container, isWin, answer);
   }
 }
 
-/**
- * Internal rendering after definition data is ready
- */
-function showEndScreen(container, isWin, answer, onRestart) {
+function showEndScreen(container, isWin, answer) {
   const def = definitionData?.[answer.toUpperCase()];
   const defHTML = def
     ? `<p class="word-definition"><em>${def.partOfSpeech}</em>: ${def.definition}</p>`
@@ -67,9 +62,6 @@ function showEndScreen(container, isWin, answer, onRestart) {
   });
 }
 
-/**
- * Clears endscreen DOM and resets callback
- */
 export function cleanupEndScreen() {
   const container = document.getElementById('endscreen');
   if (container) container.innerHTML = '';
