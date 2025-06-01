@@ -1,63 +1,64 @@
-// components/keyboard.js
+import { getState } from "../utils/state.js";
 
-const keysLayout = [
-  ['Q','W','E','R','T','Y','U','I','O','P'],
-  ['A','S','D','F','G','H','J','K','L'],
-  ['ENTER','Z','X','C','V','B','N','M','←']
+const keyboardLayout = [
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "←"]
 ];
 
-export function renderKeyboard(onKeyPress) {
-  const keyboard = document.getElementById('keyboard');
-  if (!keyboard) return;
-  keyboard.innerHTML = '';
+const keyboardContainer = document.getElementById("keyboard");
+const keyClassMap = {}; // Tracks best known state per letter
+let keyHandler = null;   // ✅ Store last onKeyPress callback
 
-  keysLayout.forEach(row => {
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'keyboard-row';
+export function renderKeyboard(onKeyPress = null) {
+  if (onKeyPress) keyHandler = onKeyPress; // ✅ Save for reuse
+  if (!keyHandler) return;
 
-    row.forEach(char => {
-      const key = document.createElement('button');
-      key.className = 'keyboard-key';
+  keyboardContainer.innerHTML = "";
 
-      if (char === '←') {
-        key.textContent = '⌫';
-        key.setAttribute('data-key', '⌫');
-      } else if (char === 'ENTER') {
-        key.textContent = '⏎';
-        key.setAttribute('data-key', 'ENTER');
-      } else {
-        key.textContent = char;
-        key.setAttribute('data-key', char);
-      }
+  keyboardLayout.forEach((row) => {
+    const rowDiv = document.createElement("div");
+    rowDiv.classList.add("keyboard-row");
 
-      key.addEventListener('click', () => {
-        onKeyPress(key.getAttribute('data-key'));
-      });
+    row.forEach((key) => {
+      const button = document.createElement("button");
+      button.textContent = key === "←" ? "⌫" : key === "ENTER" ? "⏎" : key;
+      button.classList.add("keyboard-key");
 
-      rowDiv.appendChild(key);
+      const status = keyClassMap[key];
+      if (status) button.classList.add(`key-${status}`);
+
+      button.setAttribute("data-key", key);
+      button.addEventListener("click", () => keyHandler(key));
+
+      rowDiv.appendChild(button);
     });
 
-    keyboard.appendChild(rowDiv);
+    keyboardContainer.appendChild(rowDiv);
   });
 }
 
-
 export function updateKeyColors(feedback, guess) {
-  const keys = document.querySelectorAll('.keyboard-key');
-  const map = {};
-
-  feedback.forEach((f, i) => {
+  for (let i = 0; i < guess.length; i++) {
     const letter = guess[i];
-    if (f === '🟩') map[letter] = 'key-green';
-    else if (f === '🟨' && map[letter] !== 'key-green') map[letter] = 'key-yellow';
-    else if (f === '⬜️' && !map[letter]) map[letter] = 'key-gray';
-  });
+    const status = emojiToStatus(feedback[i]);
 
-  keys.forEach(k => {
-    const char = k.getAttribute('data-key');
-    if (!map[char]) return;
+    if (!keyClassMap[letter] || statusPriority(status) > statusPriority(keyClassMap[letter])) {
+      keyClassMap[letter] = status;
+    }
+  }
 
-    k.classList.remove('key-green', 'key-yellow', 'key-gray');
-    k.classList.add(map[char]);
-  });
+  renderKeyboard(); // ✅ will now preserve keyHandler
+}
+
+function emojiToStatus(symbol) {
+  return symbol === "🟩" ? "green" :
+         symbol === "🟨" ? "yellow" :
+         symbol === "⬜️" ? "gray" : null;
+}
+
+function statusPriority(status) {
+  return status === "green" ? 3 :
+         status === "yellow" ? 2 :
+         status === "gray" ? 1 : 0;
 }
