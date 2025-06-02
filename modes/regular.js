@@ -28,6 +28,11 @@ async function init() {
     const seedData = await seedRes.json();
     wordList = await generalRes.json();
 
+    // ✅ NEW: Ensure seed word is in wordList in case the backend returns a word not included
+    if (!wordList.includes(seedData.word.toUpperCase())) {
+      wordList.push(seedData.word.toUpperCase());
+    }
+
     if (seedData?.word && seedData?.seed) {
       seedKey = seedData.seed;
       const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
