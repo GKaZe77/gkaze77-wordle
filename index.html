@@ -4,7 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GKaZe77 Wordle Hub</title>
+  <meta name="description" content="Play Wordle in 3 synced modes: Regular, Corrupted, and Blueprint. New shared word every hour.">
+  <meta property="og:title" content="GKaZe77 Wordle Hub">
+  <meta property="og:description" content="Challenge yourself in Classic, Glitched, or Logic-based Wordle modes.">
+  <meta property="og:image" content="assets/banner.png">
+  <meta name="theme-color" content="#111111" />
   <link rel="stylesheet" href="css/game.css" />
+  <link rel="icon" href="assets/favicon.ico" />
   <style>
     body {
       background-color: #111;
@@ -110,70 +116,75 @@
   </style>
 </head>
 <body>
-  <header>
+  <header role="banner">
     <h1>🎮 Wordle Mode Selector</h1>
   </header>
 
-  <section class="mode-grid">
-    <div class="mode-card mode-regular">
-      <h2>🟩 Regular Mode</h2>
-      <p>Classic 5-letter Wordle. All players share a new word every hour.</p>
-      <a href="modes/regular.html">Play Regular</a>
-    </div>
+  <main>
+    <section class="mode-grid" role="region" aria-label="Game Modes">
+      <article class="mode-card mode-regular">
+        <h2>🟩 Regular Mode</h2>
+        <p>Classic 5-letter Wordle. All players share a new word every hour.</p>
+        <a href="modes/regular.html">Play Regular</a>
+      </article>
 
-    <div class="mode-card mode-corrupted">
-      <h2>🧪 Corrupted Mode</h2>
-      <p>Feedback may lie. Designed to mess with your logic — trust nothing.</p>
-      <a href="modes/corrupted.html">Play Corrupted</a>
-    </div>
+      <article class="mode-card mode-corrupted">
+        <h2>🧪 Corrupted Mode</h2>
+        <p>Feedback may lie. Designed to mess with your logic — trust nothing.</p>
+        <a href="modes/corrupted.html">Play Corrupted</a>
+      </article>
 
-    <div class="mode-card mode-blueprint">
-      <h2>📐 Blueprint Mode</h2>
-      <p>Analyze a full board of AI guesses. Deduce the original word.</p>
-      <a href="modes/blueprint.html">Play Blueprint</a>
-    </div>
+      <article class="mode-card mode-blueprint">
+        <h2>📐 Blueprint Mode</h2>
+        <p>Analyze a full board of AI guesses. Deduce the original word.</p>
+        <a href="modes/blueprint.html">Play Blueprint</a>
+      </article>
 
-    <!-- Future Expansion Example
-    <div class="mode-card mode-custom">
-      <h2>🎲 Randomizer Mode</h2>
-      <p>A wacky challenge with shifting rulesets every round.</p>
-      <a href="#">Coming Soon</a>
-    </div>
-    -->
-  </section>
+      <!-- Future Expansion
+      <article class="mode-card mode-custom">
+        <h2>🎲 Randomizer Mode</h2>
+        <p>A wacky challenge with shifting rulesets every round.</p>
+        <a href="#">Coming Soon</a>
+      </article>
+      -->
+    </section>
 
-  <div id="custom-share">
-    <strong>🔗 Create Custom Word Challenge</strong>
-    <p>Pick a valid 5-letter word to generate a sharable challenge link for others.</p>
-    <button onclick="createCustomLink()">Create Link</button>
-  </div>
+    <section id="custom-share" aria-label="Create a Custom Word Challenge">
+      <strong>🔗 Create Custom Word Challenge</strong>
+      <p>Pick a valid 5-letter word to generate a sharable challenge link.</p>
+      <button onclick="createCustomLink()">Create Link</button>
+    </section>
+  </main>
 
   <footer>
     <p>Powered by GKaZe77 — All modes are synced and seeded hourly.</p>
   </footer>
 
   <script>
-    function createCustomLink() {
-      fetch('./data/wordlist.json')
-        .then(res => res.json())
-        .then(wordlist => {
-          const input = prompt("Enter a 5-letter word from the list:");
-          const word = input?.trim().toUpperCase();
-          if (!word || word.length !== 5 || !wordlist.includes(word)) {
-            alert("Invalid or unknown word.");
-            return;
-          }
-          let hash = 0;
-          for (let i = 0; i < word.length; i++) {
-            hash = (hash << 5) - hash + word.charCodeAt(i);
-            hash |= 0;
-          }
-          const url = `${location.origin}/modes/regular.html?seed=${Math.abs(hash)}`;
-          navigator.clipboard.writeText(url)
-            .then(() => alert("✅ Link copied to clipboard:\n" + url))
-            .catch(() => alert("Link:\n" + url));
-        })
-        .catch(() => alert("❌ Could not load wordlist."));
+    async function createCustomLink() {
+      try {
+        const res = await fetch('./data/wordlist_general.json');
+        const wordlist = await res.json();
+        const input = prompt("Enter a 5-letter word from the list:");
+        const word = input?.trim().toUpperCase();
+
+        if (!word || word.length !== 5 || !wordlist.includes(word)) {
+          alert("Invalid or unknown word.");
+          return;
+        }
+
+        let hash = 0;
+        for (let i = 0; i < word.length; i++) {
+          hash = (hash << 5) - hash + word.charCodeAt(i);
+          hash |= 0;
+        }
+
+        const url = `${location.origin}/modes/regular.html?seed=${Math.abs(hash)}`;
+        await navigator.clipboard.writeText(url);
+        alert("✅ Link copied to clipboard:\n" + url);
+      } catch {
+        alert("❌ Could not load word list or generate link.");
+      }
     }
   </script>
 </body>
