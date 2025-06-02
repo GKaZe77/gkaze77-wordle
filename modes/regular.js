@@ -22,7 +22,7 @@ async function init() {
   try {
     const [seedRes, generalRes] = await Promise.all([
       fetch("https://api.gkaze77.com/wordle/seed?mode=regular"),
-      fetch("https://api.gkaze77.com/wordle/wordlist-general"),
+      fetch("https://api.gkaze77.com/wordle/wordlist_general.json"),
     ]);
 
     const seedData = await seedRes.json();
