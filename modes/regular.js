@@ -26,33 +26,44 @@ async function init() {
     ]);
 
     const seedData = await seedRes.json();
-    wordList = await generalRes.json();
+    const rawList = await generalRes.json();
 
-    // ✅ NEW: Ensure seed word is in wordList in case the backend returns a word not included
+    // ✅ Ensure seedData is valid
+    if (!seedData || typeof seedData !== "object" || !seedData.word || !seedData.seed) {
+      console.warn("🚫 Invalid seed structure:", seedData);
+      throw new Error("Seed response invalid");
+    }
+
+    // ✅ Ensure word list is valid
+    if (!Array.isArray(rawList) || rawList.length < 1) {
+      console.warn("🚫 Invalid word list:", rawList);
+      throw new Error("Word list failed to load");
+    }
+
+    wordList = rawList;
+
+    // ✅ Force-inject seed word if necessary
     if (!wordList.includes(seedData.word.toUpperCase())) {
       wordList.push(seedData.word.toUpperCase());
     }
 
-    if (seedData?.word && seedData?.seed) {
-      seedKey = seedData.seed;
-      const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
+    seedKey = seedData.seed;
 
-      if (saved.word && saved.guesses && saved.feedbacks) {
-        wordToGuess = saved.word;
-        guesses = saved.guesses;
-        feedbacks = saved.feedbacks;
-        mode = saved.mode || "seed";
-      } else {
-        wordToGuess = seedData.word.toUpperCase();
-        guesses = [""];
-        feedbacks = [];
-        saveProgress();
-      }
+    const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
+
+    if (saved.word && saved.guesses && saved.feedbacks) {
+      wordToGuess = saved.word;
+      guesses = saved.guesses;
+      feedbacks = saved.feedbacks;
+      mode = saved.mode || "seed";
     } else {
-      throw new Error("Invalid seed response");
+      wordToGuess = seedData.word.toUpperCase();
+      guesses = [""];
+      feedbacks = [];
+      saveProgress();
     }
-  } catch {
-    // fallback: random from offline-friendly list
+  } catch (err) {
+    console.error("❗ Fallback triggered:", err.message);
     wordToGuess = fallbackSeeds[Math.floor(Math.random() * fallbackSeeds.length)].toUpperCase();
     guesses = [""];
     feedbacks = [];
