@@ -66,6 +66,8 @@ async function init() {
   updateKeyboardFromSavedGuesses();
   renderKeyboard(onKeyPress);
   startCountdown();
+
+  console.log("🟢 Mode:", mode, "| SeedKey:", seedKey, "| Word:", wordToGuess);
 }
 
 function onKeyPress(letter) {
