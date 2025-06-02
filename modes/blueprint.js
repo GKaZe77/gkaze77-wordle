@@ -22,11 +22,16 @@ async function init() {
   try {
     const [seedRes, generalRes] = await Promise.all([
       fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint"),
-      fetch("https://api.gkaze77.com/wordle/wordlist-general"),
+      fetch("https://api.gkaze77.com/wordle/wordlist_general.json"),
     ]);
 
     const seedData = await seedRes.json();
     wordList = await generalRes.json();
+
+    // ✅ NEW: Ensure seed word is playable
+    if (!wordList.includes(seedData.word.toUpperCase())) {
+      wordList.push(seedData.word.toUpperCase());
+    }
 
     if (seedData?.word && seedData?.seed) {
       seedUsed = true;
