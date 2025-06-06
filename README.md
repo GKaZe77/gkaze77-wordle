@@ -1,87 +1,87 @@
-# WordleGameProject
+# 🧠 GKaZe77 Wordle Clone
 
-An advanced multi-mode Wordle clone with seed-based word-of-the-hour logic. Each mode generates its own unique word every hour, synchronized across all players.
+A custom multi-mode Wordle game featuring synchronized seed-based puzzles, deceptive logic twists, and reverse deduction challenges — all playable directly in the browser.
 
 ---
 
 ## 🎮 Game Modes
 
-- 🟩 **Regular Mode**  
-  Classic 5-letter Wordle. Guess the hidden word in 6 tries using green/yellow/gray feedback.  
-  Seeded word rotates every hour and is the same for all players.
+### 🟩 Regular Mode
+- Classic 5-letter Wordle
+- 6 guesses
+- Standard feedback:
+  - 🟩 correct letter, correct spot  
+  - 🟨 correct letter, wrong spot  
+  - ⬜️ letter not in the word  
+- Global seed rotates **hourly** (UTC)
+- Identical word for all players each hour
 
-- 🧪 **Corrupted Mode**  
-  Same gameplay as Regular, but the feedback can lie. Some ⬜️ may actually be 🟩 or 🟨.  
-  Adds paranoia and bluff-logic. Themed visuals and randomized deception logic.  
-  Uses its own hourly seed.
+### 🧪 Corrupted Mode
+- Same structure as Regular Mode
+- But... feedback may **lie**:
+  - Some ⬜️ are false
+  - 🟨 or 🟩 may be omitted
+- Visuals "glitch" randomly
+- Unique seed per hour, separate from Regular
 
-- 🔁 **Blueprint Mode**  
-  You see a final guess and the feedback result. Your job: figure out the hidden word that caused it.  
-  A logic puzzle mode. Requires analytical deduction. Also seeded uniquely every hour.
-
----
-
-## 🧠 Seed Logic
-
-- Based on a fixed epoch: `2025-01-01T00:00:00Z`
-- One seed per hour: `Math.floor((now - epoch) / 3600000)`
-- Each gamemode uses its own unique key:  
-  Format: `"<mode>-wordle-<hour_number>"`
-
-Example:
-```js
-getSeedMetadata(wordList, 'corrupted')
-→ word: "SHARD", key: "corrupted-wordle-1443"
-```
+### 📐 Blueprint Mode
+- You’re shown the final guess and feedback result
+- Your goal: deduce the original hidden word  
+- Logic puzzle format (not trial-and-error)
+- AI-generated, solvable boards
+- New challenge every hour (seeded)
 
 ---
 
-## 🧩 Word List
+## 🧠 Core Features
 
-- You must use the exact same `wordlist.json` as others for the seed to match
-- The list is pre-shuffled and fixed
-- Store it locally or serve from a CDN
-
----
-
-## 💾 Save Behavior
-
-- Games are saved locally per-mode, per-hour
-- If a saved game exists, it resumes until completed or reset
-- Players can reset anytime using the "Reset Game" button
+- 🎯 Shared word of the hour across all players
+- 📤 Create and share **custom challenges**
+- 📱 Mobile-friendly UI
+- 💾 Saves in-progress games per mode
+- 📚 Word definitions shown on game over
+- 🔁 Reset or play again anytime
+- 🧩 Future support for difficulty variants
 
 ---
 
-## 🌐 Deployment
+## 🌐 Public API
 
-- Works offline via static hosting (e.g. IIS, GitHub Pages)
-- Designed to be portable to any domain
+Available at: **https://api.gkaze77.com**
 
----
+### Endpoints
 
-## 📁 Project Structure
+| Endpoint                              | Description                             |
+|---------------------------------------|-----------------------------------------|
+| `/wordlist/general`                   | Get full guessable word list            |
+| `/wordlist/validate?word=APPLE`       | Check if a word is valid                |
+| `/wordlist/random`                    | Get a random word                       |
+| `/wordlist/seed?mode=regular`         | Get current seed word for a mode        |
+| `/wordlist/used?mode=&seed=`          | Check if a seed has been completed      |
+| `/wordlist/mark-used` (POST)          | Mark a seed as used                     |
+| `/wordlist/definition?word=CRANE`     | Get word definition                     |
+| `/wordlist/custom?word=&mode=`        | Generate a sharable hash for a word     |
+| `/wordlist/check-custom?hash=12345`   | Debug (reverse hash is lossy)           |
 
-```
-modes/
-  regular.html / regular.js
-  corrupted.html / corrupted.js
-  blueprint.html / blueprint.js
-
-components/
-  board.js, keyboard.js, feedback.js, endscreen.js
-
-utils/
-  seed.js, state.js, dom.js, storage.js
-
-data/
-  wordlist.json, word_definitions.js
-
-css/
-  game.css, corrupted.css, blueprint.css
-```
+All words are **case-insensitive** and treated as uppercase.
 
 ---
 
-## ✅ License
+## 🔐 MIT License
 
-MIT — Use freely, credit appreciated.
+```text
+MIT License
+
+Copyright (c) 2025 Gabriel Zarate
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the “Software”), to deal
+in the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND...
