@@ -1,6 +1,7 @@
 # 🧠 GKaZe77 Wordle Clone
 
 A custom multi-mode Wordle game featuring synchronized seed-based puzzles, deceptive logic twists, and reverse deduction challenges — all playable directly in the browser.
+Live demo: https://wordle.gkaze77.com
 
 ---
 
@@ -72,7 +73,7 @@ All words are **case-insensitive** and treated as uppercase.
 ```text
 MIT License
 
-Copyright (c) 2025 Gabriel Zarate
+Copyright (c) 2025 GKaZe77
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal
