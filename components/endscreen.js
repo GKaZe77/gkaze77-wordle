@@ -1,45 +1,29 @@
-/**
- * Renders the end screen UI.
- * @param {boolean} isWin - Whether the player won.
- * @param {string} word - The correct word.
- * @param {Function} onReset - Callback for reset button.
- */
-export async function renderEndScreen(isWin, word, onReset) {
+// components/endscreen.js
+
+export function renderEndScreen(isCorrect, answer, onReset) {
   const container = document.getElementById("endscreen");
   if (!container) return;
-  container.innerHTML = "";
 
-  const message = document.createElement("div");
-  message.className = "end-message";
+  container.innerHTML = `
+    <div class="endscreen">
+      <h2>${isCorrect ? "🎉 You won!" : "❌ You lost."}</h2>
+      <p>The word was <strong>${answer}</strong></p>
+      <div id="definition-box">📖 Loading definition...</div>
+      <button id="play-again">🔁 Play Again</button>
+    </div>
+  `;
 
-  const title = document.createElement("h2");
-  title.textContent = isWin ? "🎉 You Win!" : "❌ You Lose!";
-  message.appendChild(title);
+  document.getElementById("play-again")?.addEventListener("click", () => {
+    onReset();
+  });
 
-  const answer = document.createElement("p");
-  answer.textContent = `The word was: ${word}`;
-  message.appendChild(answer);
-
-  const def = document.createElement("p");
-  def.textContent = "Looking up definition...";
-  message.appendChild(def);
-
-  try {
-    const res = await fetch(`https://api.gkaze77.com/wordle/definition?word=${word}`);
-    if (!res.ok) throw new Error("No definition");
-    const { definition, partOfSpeech } = await res.json();
-
-    def.textContent = definition
-      ? `🧠 ${partOfSpeech}: ${definition}`
-      : "❔ No definition found.";
-  } catch {
-    def.textContent = "❔ No definition found.";
-  }
-
-  const button = document.createElement("button");
-  button.textContent = "Play Again";
-  button.addEventListener("click", onReset);
-  message.appendChild(button);
-
-  container.appendChild(message);
+  fetch(`https://api.gkaze77.com/wordlist/definition?word=${answer}`)
+    .then(res => res.ok ? res.json() : Promise.reject("Not found"))
+    .then(data => {
+      const def = data.definition || data.def || data.text || "Definition not available.";
+      document.getElementById("definition-box").textContent = def;
+    })
+    .catch(() => {
+      document.getElementById("definition-box").textContent = "❌ No definition found.";
+    });
 }
