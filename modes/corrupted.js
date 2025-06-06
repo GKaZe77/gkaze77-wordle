@@ -182,7 +182,32 @@ function startFreshGame() {
   });
 }
 
-document.getElementById("reset-button")?.addEventListener("click", startFreshGame);
+document.getElementById("create-button")?.addEventListener("click", async () => {
+  try {
+    const res = await fetch("https://api.gkaze77.com/wordlist/wordlist_general.json");
+    const wordlist = await res.json();
+    const input = prompt("Enter a 5-letter word from the list:");
+    const word = input?.trim().toUpperCase();
+
+    if (!word || word.length !== 5 || !wordlist.includes(word)) {
+      alert("Invalid or unknown word.");
+      return;
+    }
+
+    let hash = 0;
+    for (let i = 0; i < word.length; i++) {
+      hash = (hash << 5) - hash + word.charCodeAt(i);
+      hash |= 0;
+    }
+
+    const url = `${location.origin}/modes/corrupted.html?seed=${Math.abs(hash)}`;
+    await navigator.clipboard.writeText(url);
+    alert("✅ Wordle link copied to clipboard:\n" + url);
+  } catch {
+    alert("❌ Failed to generate link.");
+  }
+});
+
 
 window.addEventListener("keydown", (e) => {
   let key = e.key;
