@@ -30,7 +30,7 @@ async function init() {
     const seedData = await seedRes.json();
     wordList = (await generalRes.json()).map(w => w.toUpperCase());
 
-    // 🎯 If user clicked a shared wordle link
+    // 🎯 Shared Wordle link
     if (sharedSeed) {
       const index = Math.abs(Number(sharedSeed)) % wordList.length;
       wordToGuess = wordList[index];
@@ -52,7 +52,9 @@ async function init() {
       return finalizeGame();
     }
 
-    if (!seedData || !seedData.word || !seedData.seed) throw new Error("Seed response invalid");
+    // ✅ Fix: allow 0 seed
+    if (!seedData || !seedData.word || seedData.seed == null)
+      throw new Error("Seed response invalid");
 
     if (!wordList.includes(seedData.word.toUpperCase())) {
       wordList.push(seedData.word.toUpperCase());
@@ -120,7 +122,6 @@ function onKeyPress(letter) {
 
     if (gameOver) {
       renderEndScreen(isCorrect, wordToGuess, startFreshGame);
-
       if (mode === "seed" || mode === "shared") {
         localStorage.setItem(`${STORAGE_KEY_PREFIX}-${seedKey}`, JSON.stringify({
           word: wordToGuess,
