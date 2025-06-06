@@ -14,8 +14,7 @@ export function renderEndScreen(isCorrect, answer, onReset) {
   `;
 
   document.getElementById("play-again")?.addEventListener("click", () => {
-    localStorage.clear();
-    location.reload();
+    location.href = location.pathname;
   });
 
   fetch(`https://api.gkaze77.com/wordlist/definition?word=${answer}`)
