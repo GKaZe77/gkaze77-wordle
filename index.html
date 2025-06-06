@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>GKaZe77 Wordle Hub</title>
   <meta name="description" content="Play Wordle in 3 synced modes: Regular, Corrupted, and Blueprint. New shared word every hour.">
-  <meta property="og:title" content="GKaZe77 Wordle Hub">
-  <meta property="og:description" content="Challenge yourself in Classic, Glitched, or Logic-based Wordle modes.">
   <meta property="og:image" content="assets/banner.png">
   <meta name="theme-color" content="#111111" />
   <link rel="icon" href="assets/favicon.ico" />
@@ -14,62 +12,100 @@
     html, body {
       margin: 0;
       padding: 0;
-      background-color: #000;
+      background: #000;
+      color: #fff;
       width: 100%;
       height: 100%;
       overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .banner-container {
+    nav {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 1rem;
+      z-index: 10;
+    }
+
+    nav a {
+      color: #eee;
+      text-decoration: none;
+      font-weight: bold;
+      margin-left: 1rem;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: #6aaa64;
+    }
+
+    .wrapper {
       position: relative;
       width: 100%;
       height: 100vh;
-      background: black;
+      overflow: hidden;
     }
 
-    .banner-image {
+    .wrapper img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       display: block;
     }
 
-    .mode-link {
+    .zone {
       position: absolute;
-      top: 33%;
-      width: 27.34%; /* 420px / 1536px */
-      height: 67.23%; /* 689px / 1024px */
+      top: 32.2%;     /* 330px / 1024px */
+      height: 67.2%;  /* 689px / 1024px */
+      width: 27.3%;   /* 420px / 1536px */
       cursor: pointer;
-      animation: glow 2s infinite ease-in-out;
+      border-radius: 8px;
+      transition: box-shadow 0.3s ease;
     }
 
-    .mode-link:hover {
-      opacity: 0.9;
+    .zone:hover {
+      box-shadow: 0 0 15px 5px rgba(255,255,255,0.3);
     }
 
-    .regular   { left: 8.39%; }   /* 129px / 1536px */
-    .corrupted { left: 35.55%; }  /* 546px / 1536px */
-    .blueprint { left: 65.36%; }  /* 1004px / 1536px */
+    .regular   { left: 8.4%; }
+    .corrupted { left: 35.5%; }
+    .blueprint { left: 65.4%; }
 
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 10px rgba(255,255,255,0.2); }
-      50%      { box-shadow: 0 0 20px rgba(255,255,255,0.6); }
-    }
+    @media (max-width: 768px) {
+      nav {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 0.75rem 0.5rem;
+      }
 
-    @media (max-aspect-ratio: 3/2) {
-      .banner-image {
-        object-fit: cover;
+      nav a {
+        margin: 0;
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="banner-container">
-    <img src="assets/banner.png" alt="Wordle Modes" class="banner-image" />
+  <nav>
+    <a href="https://gkaze77.com" target="_blank">Home</a>
+    <a href="/rules.html">How-To-Play</a>
+    <a href="https://github.com/GKaZe77/gkaze77-wordle" target="_blank">GitHub</a>
+  </nav>
 
-    <a class="mode-link regular"   href="modes/regular.html"   title="Play Regular Mode"></a>
-    <a class="mode-link corrupted" href="modes/corrupted.html" title="Play Corrupted Mode"></a>
-    <a class="mode-link blueprint" href="modes/blueprint.html" title="Play Blueprint Mode"></a>
+  <div class="wrapper">
+    <img src="assets/banner.png" alt="GKaZe77 Wordle Modes" />
+
+    <a href="modes/regular.html" class="zone regular" aria-label="Play Regular Mode"></a>
+    <a href="modes/corrupted.html" class="zone corrupted" aria-label="Play Corrupted Mode"></a>
+    <a href="modes/blueprint.html" class="zone blueprint" aria-label="Play Blueprint Mode"></a>
   </div>
 </body>
 </html>
