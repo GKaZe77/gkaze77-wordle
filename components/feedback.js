@@ -1,25 +1,28 @@
 export function evaluateGuess(guess, target) {
   const feedback = Array(5).fill("⬜️");
   const targetLetters = target.split("");
-  const used = Array(5).fill(false);
+  const guessLetters = guess.split("");
 
-  // First pass: green (correct letter, correct spot)
+  const letterCounts = {};
+  for (let c of targetLetters) {
+    letterCounts[c] = (letterCounts[c] || 0) + 1;
+  }
+
+  // First pass: mark 🟩 and decrement counts
   for (let i = 0; i < 5; i++) {
-    if (guess[i] === target[i]) {
+    if (guessLetters[i] === targetLetters[i]) {
       feedback[i] = "🟩";
-      used[i] = true;
+      letterCounts[guessLetters[i]]--;
     }
   }
 
-  // Second pass: yellow (correct letter, wrong spot)
+  // Second pass: mark 🟨 only if letter still available
   for (let i = 0; i < 5; i++) {
     if (feedback[i] === "🟩") continue;
-    for (let j = 0; j < 5; j++) {
-      if (!used[j] && guess[i] === target[j]) {
-        feedback[i] = "🟨";
-        used[j] = true;
-        break;
-      }
+    const letter = guessLetters[i];
+    if (letterCounts[letter] > 0) {
+      feedback[i] = "🟨";
+      letterCounts[letter]--;
     }
   }
 
