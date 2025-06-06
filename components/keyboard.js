@@ -34,9 +34,21 @@ export function updateKeyColors(feedback, guess) {
     const key = document.querySelector(`.keyboard-key[data-key='${guess[i]}']`);
     if (!key) continue;
 
-    const state = feedback[i];
-    if (state === "🟩") key.classList.add("key-green");
-    else if (state === "🟨") key.classList.add("key-yellow");
-    else key.classList.add("key-gray");
+    const currentClass = key.classList;
+    const newState = feedback[i];
+
+    if (newState === "🟩") {
+      currentClass.remove("key-yellow", "key-gray");
+      currentClass.add("key-green");
+    } else if (newState === "🟨") {
+      if (!currentClass.contains("key-green")) {
+        currentClass.remove("key-gray");
+        currentClass.add("key-yellow");
+      }
+    } else if (newState === "⬜️") {
+      if (!currentClass.contains("key-green") && !currentClass.contains("key-yellow")) {
+        currentClass.add("key-gray");
+      }
+    }
   }
 }
