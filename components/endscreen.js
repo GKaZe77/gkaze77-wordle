@@ -1,5 +1,3 @@
-// components/endscreen.js
-
 /**
  * Renders the end screen UI.
  * @param {boolean} isWin - Whether the player won.
@@ -8,6 +6,7 @@
  */
 export async function renderEndScreen(isWin, word, onReset) {
   const container = document.getElementById("endscreen");
+  if (!container) return;
   container.innerHTML = "";
 
   const message = document.createElement("div");
@@ -27,11 +26,11 @@ export async function renderEndScreen(isWin, word, onReset) {
 
   try {
     const res = await fetch(`https://api.gkaze77.com/wordle/definition?word=${word}`);
-    if (!res.ok) throw new Error("Definition not found");
-    const data = await res.json();
+    if (!res.ok) throw new Error("No definition");
+    const { definition, partOfSpeech } = await res.json();
 
-    def.textContent = data.definition
-      ? `🧠 ${data.partOfSpeech}: ${data.definition}`
+    def.textContent = definition
+      ? `🧠 ${partOfSpeech}: ${definition}`
       : "❔ No definition found.";
   } catch {
     def.textContent = "❔ No definition found.";
