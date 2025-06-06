@@ -11,14 +11,16 @@ const STORAGE_KEY_PREFIX = "wordle-corrupted";
 let wordToGuess = "";
 let guesses = [];
 let feedbacks = [];
-let wordList = [];         // all guessable words
+let wordList = [];
 let seedKey = "";
-let mode = "seed";         // or 'random'
+let mode = "seed";
 
-// fallback list for full offline resilience
 const fallbackSeeds = ["TRICK", "GLARE", "MORAL", "SHOCK", "VIRAL"];
 
 async function init() {
+  const urlParams = new URLSearchParams(location.search);
+  const sharedSeed = urlParams.get("seed");
+
   try {
     const [seedRes, generalRes] = await Promise.all([
       fetch("https://api.gkaze77.com/wordlist/wordlist_seed.json?mode=corrupted"),
@@ -26,9 +28,29 @@ async function init() {
     ]);
 
     const seedData = await seedRes.json();
-    wordList = await generalRes.json();
+    wordList = (await generalRes.json()).map(w => w.toUpperCase());
 
-    // ✅ Ensure seed word is valid
+    if (sharedSeed) {
+      const index = Math.abs(Number(sharedSeed)) % wordList.length;
+      wordToGuess = wordList[index];
+      seedKey = sharedSeed;
+      mode = "shared";
+
+      const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
+      if (saved.complete) throw new Error("Shared seed already completed.");
+
+      if (saved.word && saved.guesses && saved.feedbacks) {
+        guesses = saved.guesses;
+        feedbacks = saved.feedbacks;
+      } else {
+        guesses = [""];
+        feedbacks = [];
+        saveProgress();
+      }
+
+      return finalizeGame();
+    }
+
     if (!wordList.includes(seedData.word.toUpperCase())) {
       wordList.push(seedData.word.toUpperCase());
     }
@@ -37,7 +59,6 @@ async function init() {
       seedKey = seedData.seed;
       const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
 
-      // ✅ Check if player already finished this seed game
       if (saved.complete) throw new Error("Seed already completed.");
 
       if (saved.word && saved.guesses && saved.feedbacks) {
@@ -55,15 +76,18 @@ async function init() {
       throw new Error("Invalid seed response");
     }
   } catch {
-    // fallback: random mode
+    wordList = fallbackSeeds;
     wordToGuess = fallbackSeeds[Math.floor(Math.random() * fallbackSeeds.length)].toUpperCase();
     guesses = [""];
     feedbacks = [];
-    wordList = fallbackSeeds;
     mode = "random";
     seedKey = `random-${Date.now()}`;
   }
 
+  finalizeGame();
+}
+
+function finalizeGame() {
   updateTitle();
   renderBoard(MAX_GUESSES, guesses, feedbacks);
   updateKeyboardFromSavedGuesses();
@@ -97,8 +121,8 @@ function onKeyPress(letter) {
 
     if (gameOver) {
       renderEndScreen(isCorrect, wordToGuess, startFreshGame);
-      if (mode === "seed") {
-        // ✅ Save final state to block replays of same seed
+
+      if (mode === "seed" || mode === "shared") {
         localStorage.setItem(`${STORAGE_KEY_PREFIX}-${seedKey}`, JSON.stringify({
           word: wordToGuess,
           guesses,
@@ -153,10 +177,25 @@ function updateTitle() {
   const el = document.getElementById("game-title");
   if (!el) return;
 
-  el.textContent = mode === "seed" ? "🧪 Corrupted Wordle (Seed)" : "🧪 Corrupted Wordle (Random)";
-  el.title = mode === "seed"
-    ? `Shared Corrupted Word of the Hour\nSeed: ${seedKey}`
-    : "Offline/random corrupted game";
+  let title = "🧪 Corrupted Wordle";
+  let subtitle = "";
+
+  switch (mode) {
+    case "seed":
+      title += " (Seed)";
+      subtitle = `Shared Corrupted Word\nSeed: ${seedKey}`;
+      break;
+    case "shared":
+      title += " (Shared)";
+      subtitle = `Custom Link Game\nSeed: ${seedKey}`;
+      break;
+    default:
+      title += " (Random)";
+      subtitle = "Offline/random corrupted game";
+  }
+
+  el.textContent = title;
+  el.title = subtitle;
 }
 
 function startCountdown() {
@@ -185,7 +224,9 @@ function startFreshGame() {
 document.getElementById("create-button")?.addEventListener("click", async () => {
   try {
     const res = await fetch("https://api.gkaze77.com/wordlist/wordlist_general.json");
-    const wordlist = await res.json();
+    let wordlist = await res.json();
+    wordlist = wordlist.map(w => w.toUpperCase());
+
     const input = prompt("Enter a 5-letter word from the list:");
     const word = input?.trim().toUpperCase();
 
@@ -207,7 +248,6 @@ document.getElementById("create-button")?.addEventListener("click", async () => 
     alert("❌ Failed to generate link.");
   }
 });
-
 
 window.addEventListener("keydown", (e) => {
   let key = e.key;
