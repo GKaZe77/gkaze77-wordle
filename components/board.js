@@ -18,11 +18,12 @@ export function renderBoard(maxRows, guesses, feedbacks, activeRow = -1) {
       tile.textContent = char;
 
       if (fb[col]) {
-        // Only apply flip if this row is the one just completed
+        // Flip only when this row is freshly submitted
         if (row === activeRow) {
           tile.classList.add("flip");
         }
 
+        // Apply feedback coloring
         if (fb[col] === "🟩") tile.classList.add("feedback-correct");
         else if (fb[col] === "🟨") tile.classList.add("feedback-present");
         else tile.classList.add("feedback-absent");
@@ -31,7 +32,7 @@ export function renderBoard(maxRows, guesses, feedbacks, activeRow = -1) {
       div.appendChild(tile);
     }
 
-    // Add typing animation only to current incomplete row
+    // Highlight active row while typing
     if (row === activeRow && !feedbacks[row]) {
       div.classList.add("active-row");
     }
