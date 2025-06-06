@@ -23,7 +23,7 @@ async function init() {
 
   try {
     const [seedRes, generalRes] = await Promise.all([
-      fetch("https://api.gkaze77.com/wordlist/wordlist_seed.json?mode=corrupted"),
+      fetch("https://api.gkaze77.com/wordlist/seed?mode=corrupted"),
       fetch("https://api.gkaze77.com/wordlist/wordlist_general.json"),
     ]);
 
