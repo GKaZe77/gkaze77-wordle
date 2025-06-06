@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Play — Wordle Hub</title>
+  <meta name="theme-color" content="#111111" />
+  <link rel="icon" href="assets/favicon.ico" />
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem 1.25rem;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #111;
+      color: #eee;
+      max-width: 800px;
+      margin-inline: auto;
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      color: #6aaa64;
+    }
+
+    p, li {
+      font-size: 1rem;
+    }
+
+    ul {
+      padding-left: 1.5rem;
+    }
+
+    .mode {
+      border-left: 4px solid #444;
+      padding-left: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .regular   { border-color: #6aaa64; }
+    .corrupted { border-color: #b46eb1; }
+    .blueprint { border-color: #5ca3d0; }
+
+    a {
+      color: #6aaa64;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 How to Play</h1>
+
+  <p><strong>Guess the 5-letter word</strong> in 6 tries or fewer. Each guess gives feedback on how close you are:</p>
+  <ul>
+    <li><span style="color: #6aaa64;">🟩 Green</span>: Correct letter in the correct spot</li>
+    <li><span style="color: #c9b458;">🟨 Yellow</span>: Correct letter in the wrong spot</li>
+    <li><span style="color: #3a3a3c;">⬜️ Gray</span>: Letter not in the word</li>
+  </ul>
+
+  <div class="mode regular mode">
+    <h2>🟩 Regular Mode</h2>
+    <p>The classic game. A new shared word is seeded every hour. Everyone gets the same challenge.</p>
+  </div>
+
+  <div class="mode corrupted mode">
+    <h2>🧪 Corrupted Mode</h2>
+    <p>Some tiles may lie. Gray tiles however cannot.. — trust nothing else. Beat the game by second-guessing the game.</p>
+  </div>
+
+  <div class="mode blueprint mode">
+    <h2>📐 Blueprint Mode</h2>
+    <p>You see the final AI guess and full board. Deduce the correct answer using logic and elimination.</p>
+  </div>
+
+  <footer>
+    <p><a href="/">← Back to Wordle Hub</a></p>
+    <p>Powered by <a href="https://wordle.gkaze77.com" target="_blank">GKaZe77</a></p>
+  </footer>
+</body>
+</html>
