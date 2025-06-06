@@ -11,45 +11,57 @@ const STORAGE_KEY_PREFIX = "wordle-regular";
 let wordToGuess = "";
 let guesses = [];
 let feedbacks = [];
-let wordList = [];         // all guessable words
+let wordList = [];
 let seedKey = "";
-let mode = "seed";         // or 'random'
+let mode = "seed";
 
-// fallback list for full offline resilience
 const fallbackSeeds = ["CRANE", "AUDIO", "TRICK", "RAISE", "GHOST"];
 
 async function init() {
+  const urlParams = new URLSearchParams(location.search);
+  const sharedSeed = urlParams.get("seed");
+
   try {
     const [seedRes, generalRes] = await Promise.all([
-      fetch("https://api.gkaze77.com/wordle/seed?mode=regular"),
-      fetch("https://api.gkaze77.com/wordle/wordlist_general.json"),
+      fetch("https://api.gkaze77.com/wordlist/wordlist_seed.json?mode=regular"),
+      fetch("https://api.gkaze77.com/wordlist/wordlist_general.json"),
     ]);
 
     const seedData = await seedRes.json();
-    const rawList = await generalRes.json();
+    wordList = (await generalRes.json()).map(w => w.toUpperCase());
 
-    // ✅ Ensure seedData is valid
-    if (!seedData || typeof seedData !== "object" || !seedData.word || !seedData.seed) {
-      console.warn("🚫 Invalid seed structure:", seedData);
-      throw new Error("Seed response invalid");
+    // 🎯 If user clicked a shared wordle link
+    if (sharedSeed) {
+      const index = Math.abs(Number(sharedSeed)) % wordList.length;
+      wordToGuess = wordList[index];
+      seedKey = sharedSeed;
+      mode = "shared";
+
+      const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
+      if (saved.complete) throw new Error("Shared seed already completed.");
+
+      if (saved.word && saved.guesses && saved.feedbacks) {
+        guesses = saved.guesses;
+        feedbacks = saved.feedbacks;
+      } else {
+        guesses = [""];
+        feedbacks = [];
+        saveProgress();
+      }
+
+      return finalizeGame();
     }
 
-    // ✅ Ensure word list is valid
-    if (!Array.isArray(rawList) || rawList.length < 1) {
-      console.warn("🚫 Invalid word list:", rawList);
-      throw new Error("Word list failed to load");
-    }
+    if (!seedData || !seedData.word || !seedData.seed) throw new Error("Seed response invalid");
 
-    wordList = rawList;
-
-    // ✅ Force-inject seed word if necessary
     if (!wordList.includes(seedData.word.toUpperCase())) {
       wordList.push(seedData.word.toUpperCase());
     }
 
     seedKey = seedData.seed;
-
     const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
+
+    if (saved.complete) throw new Error("Seed already completed.");
 
     if (saved.word && saved.guesses && saved.feedbacks) {
       wordToGuess = saved.word;
@@ -63,22 +75,26 @@ async function init() {
       saveProgress();
     }
   } catch (err) {
-    console.error("❗ Fallback triggered:", err.message);
+    console.warn("⚠️ Fallback mode triggered:", err.message);
+    wordList = fallbackSeeds;
     wordToGuess = fallbackSeeds[Math.floor(Math.random() * fallbackSeeds.length)].toUpperCase();
     guesses = [""];
     feedbacks = [];
-    wordList = fallbackSeeds;
     mode = "random";
     seedKey = `random-${Date.now()}`;
   }
 
+  finalizeGame();
+}
+
+function finalizeGame() {
   updateTitle();
   renderBoard(MAX_GUESSES, guesses, feedbacks);
   updateKeyboardFromSavedGuesses();
   renderKeyboard(onKeyPress);
   startCountdown();
 
-  console.log("🟢 Mode:", mode, "| SeedKey:", seedKey, "| Word:", wordToGuess);
+  console.log("🟩 Mode:", mode, "| SeedKey:", seedKey, "| Word:", wordToGuess);
 }
 
 function onKeyPress(letter) {
@@ -104,7 +120,16 @@ function onKeyPress(letter) {
 
     if (gameOver) {
       renderEndScreen(isCorrect, wordToGuess, startFreshGame);
-      if (mode === "seed") localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
+
+      if (mode === "seed" || mode === "shared") {
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}-${seedKey}`, JSON.stringify({
+          word: wordToGuess,
+          guesses,
+          feedbacks,
+          mode,
+          complete: true
+        }));
+      }
     } else {
       guesses.push("");
     }
@@ -147,10 +172,25 @@ function updateTitle() {
   const el = document.getElementById("game-title");
   if (!el) return;
 
-  el.textContent = mode === "seed" ? "🟩 Wordle (Seed)" : "🟩 Wordle (Random)";
-  el.title = mode === "seed"
-    ? `Shared Word of the Hour\nSeed: ${seedKey}`
-    : "Offline/random fallback game";
+  let title = "🟩 Regular Wordle";
+  let subtitle = "";
+
+  switch (mode) {
+    case "seed":
+      title += " (Seed)";
+      subtitle = `Shared Word of the Hour\nSeed: ${seedKey}`;
+      break;
+    case "shared":
+      title += " (Shared)";
+      subtitle = `Custom Shared Game\nSeed: ${seedKey}`;
+      break;
+    default:
+      title += " (Random)";
+      subtitle = "Offline/random fallback game";
+  }
+
+  el.textContent = title;
+  el.title = subtitle;
 }
 
 function startCountdown() {
@@ -166,11 +206,43 @@ function startCountdown() {
 }
 
 function startFreshGame() {
-  if (seedKey) localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
-  location.reload();
+  const lastGuess = guesses.find(g => g.length === 5);
+  if (!lastGuess) return alert("Play a valid word first!");
+
+  const hash = Math.abs([...lastGuess].reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0));
+  const url = `${location.origin}${location.pathname}?seed=${hash}`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert("✅ Sharable link copied:\n" + url);
+  });
 }
 
-document.getElementById("reset-button")?.addEventListener("click", startFreshGame);
+document.getElementById("create-button")?.addEventListener("click", async () => {
+  try {
+    const res = await fetch("https://api.gkaze77.com/wordlist/wordlist_general.json");
+    let wordlist = await res.json();
+    wordlist = wordlist.map(w => w.toUpperCase());
+
+    const input = prompt("Enter a 5-letter word from the list:");
+    const word = input?.trim().toUpperCase();
+
+    if (!word || word.length !== 5 || !wordlist.includes(word)) {
+      alert("Invalid or unknown word.");
+      return;
+    }
+
+    let hash = 0;
+    for (let i = 0; i < word.length; i++) {
+      hash = (hash << 5) - hash + word.charCodeAt(i);
+      hash |= 0;
+    }
+
+    const url = `${location.origin}/modes/regular.html?seed=${Math.abs(hash)}`;
+    await navigator.clipboard.writeText(url);
+    alert("✅ Wordle link copied to clipboard:\n" + url);
+  } catch {
+    alert("❌ Failed to generate link.");
+  }
+});
 
 window.addEventListener("keydown", (e) => {
   let key = e.key;
