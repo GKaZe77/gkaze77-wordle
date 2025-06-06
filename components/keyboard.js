@@ -4,69 +4,39 @@ const keyboardLayout = [
   ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "←"]
 ];
 
-const keyboardContainer = document.getElementById("keyboard");
-const keyClassMap = {};
-let lastKeyHandler = null;
+export function renderKeyboard(onKeyPress) {
+  const container = document.getElementById("keyboard");
+  if (!container) return;
+  container.innerHTML = "";
 
-// 🔁 Called from game mode to draw keyboard
-export function renderKeyboard(onKeyPress = null) {
-  if (onKeyPress) lastKeyHandler = onKeyPress;
-  if (!lastKeyHandler) return;
-
-  keyboardContainer.innerHTML = "";
-
-  keyboardLayout.forEach((row) => {
+  keyboardLayout.forEach(row => {
     const rowDiv = document.createElement("div");
-    rowDiv.classList.add("keyboard-row");
+    rowDiv.className = "keyboard-row";
 
-    row.forEach((key) => {
-      const normalized = key === "←" ? "⌫" : key; // normalize backspace
-      const button = document.createElement("button");
-
-      // Show visual symbol but attach actual key code
-      button.textContent = key === "←" ? "⌫" : key === "ENTER" ? "⏎" : key;
-      button.classList.add("keyboard-key");
-
-      // Apply status-based class (🟩/🟨/⬜️)
-      const status = keyClassMap[key];
-      if (status) button.classList.add(`key-${status}`);
-
-      button.setAttribute("data-key", normalized);
-      button.addEventListener("click", () => lastKeyHandler(normalized));
-      rowDiv.appendChild(button);
+    row.forEach(keyChar => {
+      const key = document.createElement("button");
+      key.className = "keyboard-key";
+      key.textContent = keyChar;
+      key.setAttribute("data-key", keyChar);
+      key.onclick = () => {
+        const normalized = keyChar === "←" ? "⌫" : keyChar;
+        onKeyPress(normalized);
+      };
+      rowDiv.appendChild(key);
     });
 
-    keyboardContainer.appendChild(rowDiv);
+    container.appendChild(rowDiv);
   });
 }
 
-// 🟩 Update visual color of keys based on feedback symbols
 export function updateKeyColors(feedback, guess) {
-  for (let i = 0; i < guess.length; i++) {
-    const letter = guess[i];
-    const status = emojiToStatus(feedback[i]);
+  for (let i = 0; i < feedback.length; i++) {
+    const key = document.querySelector(`.keyboard-key[data-key='${guess[i]}']`);
+    if (!key) continue;
 
-    if (
-      !keyClassMap[letter] ||
-      statusPriority(status) > statusPriority(keyClassMap[letter])
-    ) {
-      keyClassMap[letter] = status;
-    }
+    const state = feedback[i];
+    if (state === "🟩") key.classList.add("key-green");
+    else if (state === "🟨") key.classList.add("key-yellow");
+    else key.classList.add("key-gray");
   }
-
-  renderKeyboard(); // re-render with new colors
-}
-
-// 🎨 Convert tile emoji to CSS class suffix
-function emojiToStatus(symbol) {
-  return symbol === "🟩" ? "green" :
-         symbol === "🟨" ? "yellow" :
-         symbol === "⬜️" ? "gray" : null;
-}
-
-// 🔢 Green beats yellow beats gray
-function statusPriority(status) {
-  return status === "green" ? 3 :
-         status === "yellow" ? 2 :
-         status === "gray" ? 1 : 0;
 }
