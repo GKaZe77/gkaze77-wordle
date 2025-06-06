@@ -21,14 +21,14 @@ const fallbackSeeds = ["TRICK", "GLARE", "MORAL", "SHOCK", "VIRAL"];
 async function init() {
   try {
     const [seedRes, generalRes] = await Promise.all([
-      fetch("https://api.gkaze77.com/wordle/seed?mode=corrupted"),
-      fetch("https://api.gkaze77.com/wordle/wordlist_general.json"),
+      fetch("https://api.gkaze77.com/wordlist/wordlist_seed.json?mode=corrupted"),
+      fetch("https://api.gkaze77.com/wordlist/wordlist_general.json"),
     ]);
 
     const seedData = await seedRes.json();
     wordList = await generalRes.json();
 
-    // ✅ NEW: ensure seed word is in the list
+    // ✅ Ensure seed word is valid
     if (!wordList.includes(seedData.word.toUpperCase())) {
       wordList.push(seedData.word.toUpperCase());
     }
@@ -36,6 +36,9 @@ async function init() {
     if (seedData?.word && seedData?.seed) {
       seedKey = seedData.seed;
       const saved = JSON.parse(localStorage.getItem(`${STORAGE_KEY_PREFIX}-${seedKey}`) || "{}");
+
+      // ✅ Check if player already finished this seed game
+      if (saved.complete) throw new Error("Seed already completed.");
 
       if (saved.word && saved.guesses && saved.feedbacks) {
         wordToGuess = saved.word;
@@ -52,7 +55,7 @@ async function init() {
       throw new Error("Invalid seed response");
     }
   } catch {
-    // fallback: random from offline-friendly list
+    // fallback: random mode
     wordToGuess = fallbackSeeds[Math.floor(Math.random() * fallbackSeeds.length)].toUpperCase();
     guesses = [""];
     feedbacks = [];
@@ -66,6 +69,8 @@ async function init() {
   updateKeyboardFromSavedGuesses();
   renderKeyboard(onKeyPress);
   startCountdown();
+
+  console.log("🧪 Mode:", mode, "| SeedKey:", seedKey, "| Word:", wordToGuess);
 }
 
 function onKeyPress(letter) {
@@ -92,7 +97,16 @@ function onKeyPress(letter) {
 
     if (gameOver) {
       renderEndScreen(isCorrect, wordToGuess, startFreshGame);
-      if (mode === "seed") localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
+      if (mode === "seed") {
+        // ✅ Save final state to block replays of same seed
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}-${seedKey}`, JSON.stringify({
+          word: wordToGuess,
+          guesses,
+          feedbacks,
+          mode,
+          complete: true
+        }));
+      }
     } else {
       guesses.push("");
     }
@@ -158,8 +172,14 @@ function startCountdown() {
 }
 
 function startFreshGame() {
-  if (seedKey) localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${seedKey}`);
-  location.reload();
+  const lastGuess = guesses.find(g => g.length === 5);
+  if (!lastGuess) return alert("Play a valid word first!");
+
+  const hash = Math.abs([...lastGuess].reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0));
+  const url = `${location.origin}${location.pathname}?seed=${hash}`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert("✅ Sharable link copied:\n" + url);
+  });
 }
 
 document.getElementById("reset-button")?.addEventListener("click", startFreshGame);
