@@ -2,64 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>GKaZe77 Wordle Hub</title>
-  <meta name="description" content="Play Wordle in 3 synced modes: Regular, Corrupted, and Blueprint.">
-  <meta property="og:image" content="assets/banner.png" />
+  <meta name="description" content="Play Wordle in 3 synced modes: Regular, Corrupted, and Blueprint. New shared word every hour.">
+  <meta property="og:title" content="GKaZe77 Wordle Hub">
+  <meta property="og:description" content="Challenge yourself in Classic, Glitched, or Logic-based Wordle modes.">
+  <meta property="og:image" content="assets/banner.png">
   <meta name="theme-color" content="#111111" />
   <link rel="icon" href="assets/favicon.ico" />
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       background-color: #000;
-      font-family: sans-serif;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
     }
 
     .banner-container {
       position: relative;
-      max-width: 100%;
       width: 100%;
-      height: auto;
-      overflow: hidden;
+      height: 100vh;
+      background: black;
     }
 
-    .banner-container img {
+    .banner-image {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: contain;
       display: block;
     }
 
-    .click-zone {
+    .mode-link {
       position: absolute;
+      top: 33%;
+      width: 27.34%; /* 420px / 1536px */
+      height: 67.23%; /* 689px / 1024px */
       cursor: pointer;
-      transition: box-shadow 0.3s ease, transform 0.2s ease;
+      animation: glow 2s infinite ease-in-out;
     }
 
-    .click-zone:hover {
-      box-shadow: 0 0 20px 8px rgba(255, 255, 255, 0.3);
-      transform: scale(1.03);
+    .mode-link:hover {
+      opacity: 0.9;
+    }
+
+    .regular   { left: 8.39%; }   /* 129px / 1536px */
+    .corrupted { left: 35.55%; }  /* 546px / 1536px */
+    .blueprint { left: 65.36%; }  /* 1004px / 1536px */
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+      50%      { box-shadow: 0 0 20px rgba(255,255,255,0.6); }
+    }
+
+    @media (max-aspect-ratio: 3/2) {
+      .banner-image {
+        object-fit: cover;
+      }
     }
   </style>
 </head>
 <body>
   <div class="banner-container">
-    <img src="assets/banner.png" alt="GKaZe77 Wordle Hub Banner" />
+    <img src="assets/banner.png" alt="Wordle Modes" class="banner-image" />
 
-    <!-- Regular Mode Hot Zone -->
-    <div class="click-zone"
-         style="left: 8.39%; top: 32.23%; width: 27.34%; height: 67.28%;"
-         onclick="location.href='modes/regular.html'"></div>
-
-    <!-- Corrupted Mode Hot Zone -->
-    <div class="click-zone"
-         style="left: 35.55%; top: 32.23%; width: 27.34%; height: 67.28%;"
-         onclick="location.href='modes/corrupted.html'"></div>
-
-    <!-- Blueprint Mode Hot Zone -->
-    <div class="click-zone"
-         style="left: 65.36%; top: 32.23%; width: 27.34%; height: 67.28%;"
-         onclick="location.href='modes/blueprint.html'"></div>
+    <a class="mode-link regular"   href="modes/regular.html"   title="Play Regular Mode"></a>
+    <a class="mode-link corrupted" href="modes/corrupted.html" title="Play Corrupted Mode"></a>
+    <a class="mode-link blueprint" href="modes/blueprint.html" title="Play Blueprint Mode"></a>
   </div>
 </body>
 </html>
