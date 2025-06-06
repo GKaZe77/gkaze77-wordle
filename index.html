@@ -29,6 +29,7 @@
       margin: 0;
       color: white;
       text-align: center;
+      white-space: nowrap;
     }
 
     .mode-grid {
@@ -124,8 +125,26 @@
         padding: 1.5rem 0.75rem;
       }
 
+      .mode-card {
+        padding: 1rem;
+      }
+
+      .mode-card h2 {
+        font-size: 1.2rem;
+      }
+
+      .mode-card p {
+        font-size: 0.85rem;
+      }
+
       .mode-card a {
         width: 100%;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .mode-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
