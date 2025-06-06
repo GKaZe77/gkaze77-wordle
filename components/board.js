@@ -1,38 +1,37 @@
-// components/board.js
-
-/**
- * @param {number} maxRows - Maximum number of guesses allowed.
- * @param {string[]} guesses - Player's guesses so far.
- * @param {string[][]} feedbacks - Feedback symbols per guess (🟩, 🟨, ⬜️).
- * @param {number} highlightRow - Row index to apply fresh animations to.
- */
-export function renderBoard(maxRows, guesses, feedbacks, highlightRow = -1) {
+export function renderBoard(maxRows, guesses, feedbacks, activeRow = -1) {
   const container = document.getElementById("game-container");
+  if (!container) return;
   container.innerHTML = "";
 
-  for (let i = 0; i < maxRows; i++) {
-    const row = document.createElement("div");
-    row.className = "guess-row";
+  for (let row = 0; row < maxRows; row++) {
+    const div = document.createElement("div");
+    div.className = "guess-row";
 
-    const guess = guesses[i] || "";
-    const fb = feedbacks[i] || [];
+    const word = guesses[row] || "";
+    const fb = feedbacks[row] || [];
 
-    for (let j = 0; j < 5; j++) {
+    for (let col = 0; col < 5; col++) {
       const tile = document.createElement("div");
       tile.className = "tile";
-      const letter = guess[j] || "";
-      tile.textContent = letter;
 
-      if (fb[j]) {
-        if (i === highlightRow) tile.classList.add("flip"); // ✅ flip only on current feedback row
-        if (fb[j] === "🟩") tile.classList.add("feedback-correct");
-        else if (fb[j] === "🟨") tile.classList.add("feedback-present");
-        else if (fb[j] === "⬜️") tile.classList.add("feedback-absent");
+      const char = word[col] || "";
+      tile.textContent = char;
+
+      if (fb[col]) {
+        tile.classList.add("flip");
+        if (fb[col] === "🟩") tile.classList.add("feedback-correct");
+        else if (fb[col] === "🟨") tile.classList.add("feedback-present");
+        else tile.classList.add("feedback-absent");
       }
 
-      row.appendChild(tile);
+      div.appendChild(tile);
     }
 
-    container.appendChild(row);
+    // Only animate current row (typing), not flips
+    if (row === activeRow && !feedbacks[row]) {
+      div.classList.add("active-row");
+    }
+
+    container.appendChild(div);
   }
 }
