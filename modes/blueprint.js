@@ -24,7 +24,7 @@ async function init() {
     const sharedSeed = urlParams.get("seed");
 
     const [seedRes, generalRes] = await Promise.all([
-      fetch("https://api.gkaze77.com/wordlist/wordlist_seed.json?mode=blueprint"),
+      fetch("https://api.gkaze77.com/wordlist/seed?mode=blueprint"),
       fetch("https://api.gkaze77.com/wordlist/wordlist_general.json"),
     ]);
 
