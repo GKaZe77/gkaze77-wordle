@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>GKaZe77 Wordle Hub</title>
   <meta name="description" content="Play Wordle in 3 synced modes: Regular, Corrupted, and Blueprint. New shared word every hour.">
   <meta property="og:title" content="GKaZe77 Wordle Hub">
@@ -21,12 +21,15 @@
       flex-direction: column;
       align-items: center;
       gap: 2rem;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     header h1 {
       font-size: 2.5rem;
       margin: 0;
       color: white;
+      text-align: center;
     }
 
     .mode-grid {
@@ -86,10 +89,12 @@
 
     #custom-share {
       max-width: 1000px;
+      width: 100%;
       background-color: #1a1a1a;
       border-left: 5px solid #fbc02d;
       padding: 1rem;
       border-radius: 8px;
+      box-sizing: border-box;
     }
 
     #custom-share button {
@@ -112,6 +117,17 @@
       color: #666;
       text-align: center;
       margin-top: 2rem;
+      padding-bottom: 2rem;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 1.5rem 0.75rem;
+      }
+
+      .mode-card a {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -139,14 +155,6 @@
         <p>Analyze a full board of AI guesses. Deduce the original word.</p>
         <a href="modes/blueprint.html">Play Blueprint</a>
       </article>
-
-      <!-- Future Expansion
-      <article class="mode-card mode-custom">
-        <h2>🎲 Randomizer Mode</h2>
-        <p>A wacky challenge with shifting rulesets every round.</p>
-        <a href="#">Coming Soon</a>
-      </article>
-      -->
     </section>
 
     <section id="custom-share" aria-label="Create a Custom Word Challenge">
