@@ -20,37 +20,48 @@ const fallbackSeeds = ["LOGIC", "CRANE", "AUDIO", "RAISE", "POINT"];
 
 async function init() {
   try {
+    const urlParams = new URLSearchParams(location.search);
+    const sharedSeed = urlParams.get("seed");
+
     const [seedRes, generalRes] = await Promise.all([
-      fetch("https://api.gkaze77.com/wordle/seed?mode=blueprint"),
-      fetch("https://api.gkaze77.com/wordle/wordlist_general.json"),
+      fetch("https://api.gkaze77.com/wordlist/wordlist_seed.json?mode=blueprint"),
+      fetch("https://api.gkaze77.com/wordlist/wordlist_general.json"),
     ]);
 
-    const seedData = await seedRes.json();
-    wordList = await generalRes.json();
+    wordList = (await generalRes.json()).map(w => w.toUpperCase());
 
-    // ✅ NEW: Ensure seed word is playable
-    if (!wordList.includes(seedData.word.toUpperCase())) {
-      wordList.push(seedData.word.toUpperCase());
-    }
-
-    if (seedData?.word && seedData?.seed) {
+    if (sharedSeed) {
+      const index = Math.abs(Number(sharedSeed)) % wordList.length;
+      wordToGuess = wordList[index];
+      seedKey = sharedSeed;
       seedUsed = true;
-      seedKey = seedData.seed;
-      wordToGuess = seedData.word.toUpperCase();
+
+      const wasUsed = localStorage.getItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`) === "1";
+      if (wasUsed) throw new Error("Seed already played");
     } else {
-      throw new Error("Invalid seed response");
+      const seedData = await seedRes.json();
+      const seedWord = seedData.word.toUpperCase();
+      seedKey = seedData.seed;
+
+      if (!wordList.includes(seedWord)) wordList.push(seedWord);
+
+      wordToGuess = seedWord;
+      seedUsed = true;
+
+      const wasUsed = localStorage.getItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`) === "1";
+      if (wasUsed) throw new Error("Seed already played");
     }
   } catch {
     wordList = fallbackSeeds;
     wordToGuess = fallbackSeeds[Math.floor(Math.random() * fallbackSeeds.length)].toUpperCase();
     seedKey = `random-${Date.now()}`;
+    seedUsed = false;
   }
 
   updateTitle();
   updateSeedInfo();
   prefillWithAI();
-  guesses.push("");
-  feedbacks.push(null);
+  guesses.push(""); // current player row
   renderBoard(MAX_GUESSES, guesses, feedbacks);
   renderKeyboard(onKeyPress);
   setupTimer();
@@ -58,10 +69,10 @@ async function init() {
 
 function onKeyPress(letter) {
   const currentIndex = guesses.length - 1;
-  let currentGuess = guesses[currentIndex] || '';
+  let currentGuess = guesses[currentIndex] || "";
   if (feedbacks[currentIndex]) return;
 
-  if (letter === 'ENTER') {
+  if (letter === "ENTER") {
     if (currentGuess.length !== 5 || !wordList.includes(currentGuess.toUpperCase())) {
       shakeRow(currentIndex);
       return;
@@ -162,9 +173,22 @@ function setupTimer() {
   setInterval(update, 1000);
 }
 
-document.getElementById("reset-button")?.addEventListener("click", () => {
-  localStorage.removeItem(`used-${STORAGE_KEY_PREFIX}-${seedKey}`);
-  location.reload();
+document.getElementById("create-button")?.addEventListener("click", async () => {
+  const input = prompt("Enter a 5-letter word to share:");
+  const word = input?.trim().toUpperCase();
+  const valid = word && word.length === 5 && wordList.includes(word);
+  if (!valid) return alert("Invalid or unknown word.");
+
+  let hash = 0;
+  for (let i = 0; i < word.length; i++) {
+    hash = (hash << 5) - hash + word.charCodeAt(i);
+    hash |= 0;
+  }
+
+  const mode = "blueprint";
+  const url = `${location.origin}/modes/${mode}.html?seed=${Math.abs(hash)}`;
+  await navigator.clipboard.writeText(url);
+  alert("🔗 Wordle link copied:\n" + url);
 });
 
 window.addEventListener("keydown", (e) => {
